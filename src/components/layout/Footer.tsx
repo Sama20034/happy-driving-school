@@ -29,13 +29,13 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/auth" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors">
-                  تسجيل الدخول
+                <Link to="/about" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors">
+                  من نحن
                 </Link>
               </li>
               <li>
-                <Link to="/my-bookings" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors">
-                  حجوزاتي
+                <Link to="/auth" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors">
+                  تسجيل الدخول
                 </Link>
               </li>
               <li>
