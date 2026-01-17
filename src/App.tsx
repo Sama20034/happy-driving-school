@@ -18,6 +18,7 @@ import Cart from "./pages/Cart";
 import MyOrders from "./pages/MyOrders";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
+import PendingApproval from "./pages/PendingApproval";
 import AdminLayout from "./components/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Bookings from "./pages/admin/Bookings";
@@ -31,6 +32,7 @@ import StoreCategories from "./pages/admin/StoreCategories";
 import StoreProducts from "./pages/admin/StoreProducts";
 import StoreOrders from "./pages/admin/StoreOrders";
 import DiscountCodes from "./pages/admin/DiscountCodes";
+import UserApprovals from "./pages/admin/UserApprovals";
 import SocialSidebar from "./components/layout/SocialSidebar";
 import InstallPrompt from "./components/pwa/InstallPrompt";
 import ScrollToTop from "./components/ScrollToTop";
@@ -60,6 +62,7 @@ const App = () => (
             <Route path="/cart" element={<Cart />} />
             <Route path="/my-orders" element={<MyOrders />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/pending-approval" element={<PendingApproval />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
@@ -75,6 +78,7 @@ const App = () => (
               <Route path="store-categories" element={<StoreCategories />} />
               <Route path="store-products" element={<StoreProducts />} />
               <Route path="store-orders" element={<StoreOrders />} />
+              <Route path="user-approvals" element={<UserApprovals />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />

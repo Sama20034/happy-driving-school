@@ -539,26 +539,41 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_status: string | null
           created_at: string
           full_name: string | null
           id: string
+          id_card_url: string | null
+          is_approved: boolean | null
+          personal_photo_url: string | null
           phone: string | null
+          rejection_reason: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          approval_status?: string | null
           created_at?: string
           full_name?: string | null
           id: string
+          id_card_url?: string | null
+          is_approved?: boolean | null
+          personal_photo_url?: string | null
           phone?: string | null
+          rejection_reason?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          approval_status?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          id_card_url?: string | null
+          is_approved?: boolean | null
+          personal_photo_url?: string | null
           phone?: string | null
+          rejection_reason?: string | null
           updated_at?: string
           user_id?: string
         }
