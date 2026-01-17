@@ -3,17 +3,17 @@ import { Users, UserCheck, Calendar, Star } from "lucide-react";
 const stats = [
   {
     icon: UserCheck,
-    value: "٥٠+",
+    value: "٥٠٠+",
     label: "كابتن مسجل",
   },
   {
     icon: Users,
-    value: "١,٠٠٠+",
+    value: "٢,٠٠٠+",
     label: "متدرب",
   },
   {
     icon: Calendar,
-    value: "٢,٥٠٠+",
+    value: "٥,٠٠٠+",
     label: "حجز ناجح",
   },
   {
@@ -25,27 +25,40 @@ const stats = [
 
 const StatsSection = () => {
   return (
-    <section className="py-16 gradient-primary">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
+    <section className="py-24 bg-primary relative overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 left-1/4 w-64 h-64 bg-background/5 rounded-full" />
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-background/5 rounded-full" />
+        {/* Grid pattern */}
+        <div className="absolute inset-0 opacity-5" style={{
+          backgroundImage: `linear-gradient(hsl(var(--background)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--background)) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
+        }} />
+      </div>
+      
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="text-center mb-14">
+          <span className="inline-block bg-background/10 text-primary-foreground px-4 py-1.5 rounded-full text-sm font-medium mb-4 border border-background/20">
+            إحصائيات
+          </span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground mb-4">
             أرقام تتكلم عننا
           </h2>
-          <p className="text-primary-foreground/80">ثقة آلاف المتدربين والكباتن</p>
+          <p className="text-background/70 text-lg">ثقة آلاف المتدربين والكباتن</p>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {stats.map((stat, index) => (
             <div
               key={index}
-              className="bg-primary-foreground/10 backdrop-blur-sm rounded-2xl p-6 text-center border border-primary-foreground/20 opacity-0 animate-fade-in-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="group bg-background/10 backdrop-blur-sm rounded-3xl p-8 text-center border border-background/20 hover:bg-background/20 transition-all duration-300 hover:-translate-y-2"
             >
-              <div className="w-14 h-14 rounded-full bg-primary-foreground/20 flex items-center justify-center mx-auto mb-4">
-                <stat.icon className="text-primary-foreground" size={24} />
+              <div className="w-16 h-16 rounded-2xl bg-background/10 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform border border-background/20">
+                <stat.icon className="text-primary-foreground" size={28} />
               </div>
-              <div className="text-3xl md:text-4xl font-bold text-primary-foreground mb-1">{stat.value}</div>
-              <div className="text-primary-foreground/80 text-sm font-medium">{stat.label}</div>
+              <div className="text-4xl md:text-5xl font-bold text-primary-foreground mb-2">{stat.value}</div>
+              <div className="text-background/70 font-medium">{stat.label}</div>
             </div>
           ))}
         </div>
