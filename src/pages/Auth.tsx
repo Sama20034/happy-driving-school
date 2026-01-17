@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Eye, EyeOff, Mail, Lock, User, Car, GraduationCap } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Car, GraduationCap, Upload, CreditCard, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { supabase } from "@/integrations/supabase/client";
 
 type UserRole = 'trainee' | 'captain';
 
@@ -26,11 +27,53 @@ const Auth = () => {
     fullName: "",
   });
 
+  // Document uploads
+  const [idCardFile, setIdCardFile] = useState<File | null>(null);
+  const [personalPhotoFile, setPersonalPhotoFile] = useState<File | null>(null);
+  const [idCardPreview, setIdCardPreview] = useState<string | null>(null);
+  const [personalPhotoPreview, setPersonalPhotoPreview] = useState<string | null>(null);
+
   useEffect(() => {
     if (user && !loading) {
       navigate("/");
     }
   }, [user, loading, navigate]);
+
+  const handleFileChange = (file: File | null, type: 'id_card' | 'personal_photo') => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (type === 'id_card') {
+          setIdCardFile(file);
+          setIdCardPreview(reader.result as string);
+        } else {
+          setPersonalPhotoFile(file);
+          setPersonalPhotoPreview(reader.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadDocument = async (file: File, userId: string, type: string): Promise<string | null> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}/${type}_${Date.now()}.${fileExt}`;
+
+    const { error } = await supabase.storage
+      .from('user-documents')
+      .upload(fileName, file);
+
+    if (error) {
+      console.error('Error uploading:', error);
+      return null;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('user-documents')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,16 +93,40 @@ const Auth = () => {
           navigate("/");
         }
       } else {
-        const { error } = await signUp(formData.email, formData.password, formData.fullName, selectedRole);
+        // Validate required documents
+        if (!idCardFile || !personalPhotoFile) {
+          toast.error("يرجى رفع صورة البطاقة والصورة الشخصية");
+          setIsSubmitting(false);
+          return;
+        }
+
+        const { error, data } = await signUp(formData.email, formData.password, formData.fullName, selectedRole);
         if (error) {
           if (error.message.includes("already registered")) {
             toast.error("هذا البريد الإلكتروني مسجل بالفعل");
           } else {
             toast.error(error.message);
           }
-        } else {
-          toast.success("تم إنشاء الحساب بنجاح!");
-          navigate("/");
+        } else if (data?.user) {
+          // Upload documents
+          const [idCardUrl, personalPhotoUrl] = await Promise.all([
+            uploadDocument(idCardFile, data.user.id, 'id_card'),
+            uploadDocument(personalPhotoFile, data.user.id, 'personal_photo')
+          ]);
+
+          // Update profile with document URLs
+          if (idCardUrl && personalPhotoUrl) {
+            await supabase
+              .from('profiles')
+              .update({
+                id_card_url: idCardUrl,
+                personal_photo_url: personalPhotoUrl
+              })
+              .eq('user_id', data.user.id);
+          }
+
+          toast.success("تم إنشاء الحساب بنجاح! في انتظار موافقة الإدارة");
+          navigate("/pending-approval");
         }
       }
     } finally {
@@ -163,6 +230,7 @@ const Auth = () => {
                       className="pr-10 text-right rounded-xl h-12"
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      required
                     />
                   </div>
                 </div>
@@ -208,6 +276,73 @@ const Auth = () => {
                 </div>
               </div>
 
+              {/* Document Upload - Only show on signup */}
+              {!isLogin && (
+                <div className="space-y-4">
+                  <Label className="text-base font-semibold">المستندات المطلوبة *</Label>
+                  
+                  {/* ID Card Upload */}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2 text-sm">
+                      <CreditCard className="h-4 w-4" />
+                      صورة البطاقة الشخصية
+                    </Label>
+                    <div 
+                      className={`relative border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-primary/50 ${
+                        idCardPreview ? 'border-primary bg-primary/5' : 'border-border'
+                      }`}
+                      onClick={() => document.getElementById('idCardInput')?.click()}
+                    >
+                      <input
+                        id="idCardInput"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleFileChange(e.target.files?.[0] || null, 'id_card')}
+                      />
+                      {idCardPreview ? (
+                        <img src={idCardPreview} alt="ID Card" className="max-h-32 mx-auto rounded-lg" />
+                      ) : (
+                        <div className="py-4">
+                          <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                          <p className="text-sm text-muted-foreground">اضغط لرفع صورة البطاقة</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Personal Photo Upload */}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2 text-sm">
+                      <UserCircle className="h-4 w-4" />
+                      صورة شخصية
+                    </Label>
+                    <div 
+                      className={`relative border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-primary/50 ${
+                        personalPhotoPreview ? 'border-primary bg-primary/5' : 'border-border'
+                      }`}
+                      onClick={() => document.getElementById('personalPhotoInput')?.click()}
+                    >
+                      <input
+                        id="personalPhotoInput"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleFileChange(e.target.files?.[0] || null, 'personal_photo')}
+                      />
+                      {personalPhotoPreview ? (
+                        <img src={personalPhotoPreview} alt="Personal Photo" className="max-h-32 mx-auto rounded-lg" />
+                      ) : (
+                        <div className="py-4">
+                          <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                          <p className="text-sm text-muted-foreground">اضغط لرفع صورتك الشخصية</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <Button
                 type="submit"
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl h-12 text-lg"
@@ -220,7 +355,13 @@ const Auth = () => {
             <div className="mt-6 text-center">
               <button
                 type="button"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setIdCardFile(null);
+                  setPersonalPhotoFile(null);
+                  setIdCardPreview(null);
+                  setPersonalPhotoPreview(null);
+                }}
                 className="text-primary hover:underline"
               >
                 {isLogin ? "ليس لديك حساب؟ سجل الآن" : "لديك حساب بالفعل؟ سجل دخول"}
