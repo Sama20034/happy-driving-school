@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+type UserRole = 'admin' | 'user' | 'captain' | 'trainee' | null;
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole>(null);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -18,10 +21,11 @@ export const useAuth = () => {
         // Defer role check with setTimeout to prevent deadlock
         if (session?.user) {
           setTimeout(() => {
-            checkAdminRole(session.user.id);
+            checkUserRole(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
+          setUserRole(null);
         }
       }
     );
@@ -31,7 +35,7 @@ export const useAuth = () => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        checkUserRole(session.user.id);
       }
       setLoading(false);
     });
@@ -39,18 +43,19 @@ export const useAuth = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkAdminRole = async (userId: string) => {
+  const checkUserRole = async (userId: string) => {
     const { data, error } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
-      .eq('role', 'admin')
       .maybeSingle();
 
     if (!error && data) {
-      setIsAdmin(true);
+      setUserRole(data.role as UserRole);
+      setIsAdmin(data.role === 'admin');
     } else {
       setIsAdmin(false);
+      setUserRole(null);
     }
   };
 
@@ -89,6 +94,7 @@ export const useAuth = () => {
     session,
     loading,
     isAdmin,
+    userRole,
     signIn,
     signUp,
     signOut,
