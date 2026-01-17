@@ -3,8 +3,9 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, Car, MapPin, Clock, User } from "lucide-react";
+import { Star, Car, MapPin, Clock, User, Eye } from "lucide-react";
 import { BookingModal } from "./BookingModal";
+import { CaptainDetailsModal } from "./CaptainDetailsModal";
 
 interface Captain {
   id: string;
@@ -30,20 +31,31 @@ interface CaptainCardProps {
 
 export const CaptainCard = ({ captain }: CaptainCardProps) => {
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  const handleBookFromDetails = () => {
+    setShowDetailsModal(false);
+    setShowBookingModal(true);
+  };
 
   return (
     <>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow">
         <CardHeader className="pb-4">
           <div className="flex items-start gap-4">
-            <Avatar className="h-16 w-16">
+            <Avatar className="h-16 w-16 cursor-pointer" onClick={() => setShowDetailsModal(true)}>
               <AvatarImage src={captain.personal_photo_url} alt={captain.full_name} />
               <AvatarFallback>
                 <User className="h-8 w-8" />
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h3 className="font-semibold text-lg">{captain.full_name}</h3>
+              <h3 
+                className="font-semibold text-lg cursor-pointer hover:text-primary transition-colors"
+                onClick={() => setShowDetailsModal(true)}
+              >
+                {captain.full_name}
+              </h3>
               <div className="flex items-center gap-2 mt-1">
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
@@ -85,12 +97,27 @@ export const CaptainCard = ({ captain }: CaptainCardProps) => {
           )}
         </CardContent>
 
-        <CardFooter className="pt-0">
-          <Button className="w-full" onClick={() => setShowBookingModal(true)}>
+        <CardFooter className="pt-0 gap-2">
+          <Button 
+            variant="outline" 
+            className="flex-1"
+            onClick={() => setShowDetailsModal(true)}
+          >
+            <Eye className="h-4 w-4 ml-2" />
+            عرض التفاصيل
+          </Button>
+          <Button className="flex-1" onClick={() => setShowBookingModal(true)}>
             احجز الآن
           </Button>
         </CardFooter>
       </Card>
+
+      <CaptainDetailsModal
+        captain={captain}
+        open={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        onBook={handleBookFromDetails}
+      />
 
       <BookingModal
         captain={captain}
