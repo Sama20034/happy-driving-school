@@ -34,6 +34,11 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/services" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors">
+                  خدماتنا
+                </Link>
+              </li>
+              <li>
                 <Link to="/auth" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors">
                   تسجيل الدخول
                 </Link>
