@@ -23,6 +23,10 @@ interface PendingUser {
   car_license_url: string | null;
   driving_license_url: string | null;
   car_photo_url: string | null;
+  car_type: string | null;
+  transmission_type: string | null;
+  training_governorate_id: string | null;
+  training_governorate_name?: string | null;
   created_at: string;
   role: string;
 }
@@ -50,7 +54,7 @@ const UserApprovals = () => {
       return;
     }
 
-    // Get roles for each user
+    // Get roles and governorate names for each user
     const usersWithRoles = await Promise.all(
       (profiles || []).map(async (profile) => {
         const { data: roleData } = await supabase
@@ -59,9 +63,20 @@ const UserApprovals = () => {
           .eq('user_id', profile.user_id)
           .maybeSingle();
 
+        let governorateName = null;
+        if (profile.training_governorate_id) {
+          const { data: govData } = await supabase
+            .from('governorates')
+            .select('name')
+            .eq('id', profile.training_governorate_id)
+            .maybeSingle();
+          governorateName = govData?.name;
+        }
+
         return {
           ...profile,
-          role: roleData?.role || 'trainee'
+          role: roleData?.role || 'trainee',
+          training_governorate_name: governorateName
         };
       })
     );
@@ -315,7 +330,28 @@ const UserApprovals = () => {
             {/* Captain-specific Documents */}
             {selectedUser?.role === 'captain' && (
               <div>
-                <h3 className="font-semibold mb-3 text-lg text-primary">مستندات الكابتن</h3>
+                <h3 className="font-semibold mb-3 text-lg text-primary">بيانات الكابتن</h3>
+                
+                {/* Captain Info */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 bg-muted/30 rounded-xl">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground mb-1">نوع السيارة</p>
+                    <p className="font-semibold">{selectedUser?.car_type || 'غير محدد'}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground mb-1">نوع ناقل الحركة</p>
+                    <p className="font-semibold">
+                      {selectedUser?.transmission_type === 'manual' ? 'مانوال' : 
+                       selectedUser?.transmission_type === 'automatic' ? 'أوتوماتيك' : 'غير محدد'}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground mb-1">محافظة التدريب</p>
+                    <p className="font-semibold">{selectedUser?.training_governorate_name || 'غير محدد'}</p>
+                  </div>
+                </div>
+                
+                <h4 className="font-medium mb-3 text-sm">مستندات الكابتن</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <DocumentCard title="رخصة السيارة" icon={FileText} url={selectedUser?.car_license_url || null} />
                   <DocumentCard title="الرخصة الشخصية" icon={FileText} url={selectedUser?.driving_license_url || null} />
