@@ -15,6 +15,7 @@ import { useCart } from "@/hooks/useCart";
 
 const navLinks = [
   { href: "/", label: "الرئيسية" },
+  { href: "/captains", label: "الكباتن" },
   { href: "/booking", label: "احجز كابتن" },
   { href: "/services", label: "خدماتنا" },
   { href: "/about", label: "من نحن" },
