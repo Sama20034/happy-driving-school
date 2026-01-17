@@ -185,19 +185,19 @@ const CaptainsPage = () => {
             {/* Search & Filters */}
             <div className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
               <div className="relative flex-1">
-                <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
                 <Input
                   placeholder="ابحث عن كابتن أو نوع سيارة..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pr-12 h-12 bg-white border-0 text-foreground rounded-xl shadow-lg"
+                  className="pr-12 h-12 bg-white border-0 text-gray-900 placeholder:text-gray-500 rounded-xl shadow-lg"
                 />
               </div>
               <Select value={selectedGovernorate} onValueChange={setSelectedGovernorate}>
-                <SelectTrigger className="w-full sm:w-[180px] h-12 bg-white border-0 rounded-xl shadow-lg">
+                <SelectTrigger className="w-full sm:w-[180px] h-12 bg-white border-0 rounded-xl shadow-lg text-gray-900">
                   <SelectValue placeholder="المحافظة" />
                 </SelectTrigger>
-                <SelectContent className="bg-card">
+                <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
                   <SelectItem value="all">كل المحافظات</SelectItem>
                   {governorates.map((gov) => (
                     <SelectItem key={gov.id} value={gov.id}>
