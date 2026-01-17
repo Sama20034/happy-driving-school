@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Car, MapPin, Clock, User, Phone, Image } from "lucide-react";
+import { Star, Car, MapPin, Clock, User, Image } from "lucide-react";
 
 interface Captain {
   id: string;
@@ -92,13 +92,6 @@ export const CaptainDetailsModal = ({ captain, open, onClose, onBook }: CaptainD
               <span className="text-primary font-bold">{captain.hourly_rate} جنيه / ساعة</span>
             </div>
 
-            {captain.phone && (
-              <div className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-primary" />
-                <span className="font-medium">الهاتف:</span>
-                <span dir="ltr">{captain.phone}</span>
-              </div>
-            )}
           </div>
 
           {/* Bio */}
