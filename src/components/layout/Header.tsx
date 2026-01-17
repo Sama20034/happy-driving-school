@@ -34,24 +34,24 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-50 bg-card/95 backdrop-blur-md border-b border-border shadow-sm">
+    <header className="fixed top-0 right-0 left-0 z-50 bg-card/90 backdrop-blur-lg border-b border-border/50">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-18 py-3">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">ك</span>
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-base">ك</span>
             </div>
-            <span className="text-xl font-bold text-primary">كباتن القيادة</span>
+            <span className="text-lg font-semibold text-foreground">كباتن القيادة</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
-                className="text-foreground/80 hover:text-primary transition-colors font-medium"
+                className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors text-sm font-medium rounded-lg hover:bg-muted/50"
               >
                 {link.label}
               </Link>
@@ -59,13 +59,13 @@ const Header = () => {
           </nav>
 
           {/* Cart & CTA Button & User Menu */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
             {/* Cart Button */}
-            <Link to="/cart" className="relative">
-              <Button variant="ghost" size="icon" className="relative">
-                <ShoppingCart size={20} />
+            <Link to="/cart">
+              <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                <ShoppingCart size={18} />
                 {getTotalItems() > 0 && (
-                  <Badge className="absolute -top-1 -left-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                  <Badge className="absolute -top-1 -left-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] bg-primary">
                     {getTotalItems()}
                   </Badge>
                 )}
@@ -73,13 +73,13 @@ const Header = () => {
             </Link>
 
             {loading ? (
-              <div className="h-10 w-24 bg-muted animate-pulse rounded-lg"></div>
+              <div className="h-9 w-20 bg-muted animate-pulse rounded-lg"></div>
             ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2">
-                    <User size={18} />
-                    <span className="max-w-[100px] truncate">
+                  <Button variant="ghost" size="sm" className="gap-2 h-9">
+                    <User size={16} />
+                    <span className="max-w-[80px] truncate text-sm">
                       {user.email?.split("@")[0]}
                     </span>
                   </Button>
@@ -91,27 +91,27 @@ const Header = () => {
                         to={userRole === 'captain' ? '/captain-dashboard' : '/trainee-dashboard'} 
                         className="flex items-center gap-2 cursor-pointer"
                       >
-                        <LayoutDashboard size={16} />
+                        <LayoutDashboard size={14} />
                         لوحة التحكم
                       </Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem asChild>
                     <Link to="/my-bookings" className="flex items-center gap-2 cursor-pointer">
-                      <Calendar size={16} />
+                      <Calendar size={14} />
                       حجوزاتي
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/my-orders" className="flex items-center gap-2 cursor-pointer">
-                      <Package size={16} />
+                      <Package size={14} />
                       طلباتي
                     </Link>
                   </DropdownMenuItem>
                   {isAdmin && (
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="flex items-center gap-2 cursor-pointer">
-                        <Settings size={16} />
+                        <Settings size={14} />
                         لوحة الأدمن
                       </Link>
                     </DropdownMenuItem>
@@ -121,27 +121,27 @@ const Header = () => {
                     onClick={handleLogout}
                     className="flex items-center gap-2 text-destructive cursor-pointer"
                   >
-                    <LogOut size={16} />
+                    <LogOut size={14} />
                     تسجيل الخروج
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="outline" asChild>
+              <Button variant="ghost" size="sm" className="h-9" asChild>
                 <Link to="/auth">تسجيل الدخول</Link>
               </Button>
             )}
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6" asChild>
+            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg h-9 px-4" asChild>
               <Link to="/auth">سجّل الآن</Link>
             </Button>
           </div>
 
           {/* Mobile Cart & Menu Button */}
-          <div className="md:hidden flex items-center gap-2">
+          <div className="md:hidden flex items-center gap-1">
             <Link to="/cart" className="relative p-2">
-              <ShoppingCart size={22} />
+              <ShoppingCart size={20} />
               {getTotalItems() > 0 && (
-                <Badge className="absolute -top-0.5 -left-0.5 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                <Badge className="absolute top-0 left-0 h-4 w-4 p-0 flex items-center justify-center text-[10px] bg-primary">
                   {getTotalItems()}
                 </Badge>
               )}
@@ -150,20 +150,20 @@ const Header = () => {
               className="p-2 text-foreground"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border bg-background">
-            <nav className="flex flex-col gap-4">
+          <div className="md:hidden py-4 border-t border-border/50 bg-card">
+            <nav className="flex flex-col gap-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
-                  className="text-foreground/80 hover:text-primary transition-colors font-medium py-2"
+                  className="px-4 py-3 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-sm font-medium rounded-lg"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {link.label}
@@ -174,54 +174,55 @@ const Header = () => {
                   {(userRole === 'captain' || userRole === 'trainee') && (
                     <Link
                       to={userRole === 'captain' ? '/captain-dashboard' : '/trainee-dashboard'}
-                      className="text-foreground/80 hover:text-primary transition-colors font-medium py-2 flex items-center gap-2"
+                      className="px-4 py-3 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-sm font-medium rounded-lg flex items-center gap-2"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <LayoutDashboard size={18} />
+                      <LayoutDashboard size={16} />
                       لوحة التحكم
                     </Link>
                   )}
                   <Link
                     to="/my-bookings"
-                    className="text-foreground/80 hover:text-primary transition-colors font-medium py-2 flex items-center gap-2"
+                    className="px-4 py-3 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-sm font-medium rounded-lg flex items-center gap-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <Calendar size={18} />
+                    <Calendar size={16} />
                     حجوزاتي
                   </Link>
                   {isAdmin && (
                     <Link
                       to="/admin"
-                      className="text-foreground/80 hover:text-primary transition-colors font-medium py-2 flex items-center gap-2"
+                      className="px-4 py-3 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-sm font-medium rounded-lg flex items-center gap-2"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <Settings size={18} />
+                      <Settings size={16} />
                       لوحة الأدمن
                     </Link>
                   )}
                 </>
               )}
-              <div className="flex flex-col gap-2 pt-4 border-t border-border">
+              <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-border/50">
                 {user ? (
                   <Button
-                    variant="outline"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => {
                       handleLogout();
                       setIsMenuOpen(false);
                     }}
-                    className="text-destructive"
+                    className="text-destructive justify-start"
                   >
-                    <LogOut size={18} className="ml-2" />
+                    <LogOut size={16} className="ml-2" />
                     تسجيل الخروج
                   </Button>
                 ) : (
-                  <Button variant="outline" asChild>
+                  <Button variant="ghost" size="sm" className="justify-start" asChild>
                     <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
                       تسجيل الدخول
                     </Link>
                   </Button>
                 )}
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full" asChild>
+                <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg" asChild>
                   <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
                     سجّل الآن
                   </Link>
