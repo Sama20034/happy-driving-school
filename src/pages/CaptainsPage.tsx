@@ -60,7 +60,9 @@ const CaptainsPage = () => {
 
   const fetchCaptains = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    
+    // First, try to get captains from captain_profiles (for existing captains)
+    const { data: captainProfiles } = await supabase
       .from("captain_profiles")
       .select(`
         *,
@@ -69,13 +71,83 @@ const CaptainsPage = () => {
       .eq("is_available", true)
       .order("rating", { ascending: false });
 
-    if (data) {
-      const captainsWithGov = data.map((captain: any) => ({
-        ...captain,
-        governorate_name: captain.governorates?.name || null,
-      }));
-      setCaptains(captainsWithGov);
+    // Also get approved captains from profiles table (new system)
+    const { data: approvedProfiles } = await supabase
+      .from("profiles")
+      .select(`
+        id,
+        user_id,
+        full_name,
+        phone,
+        training_governorate_id,
+        car_type,
+        transmission_type,
+        car_photo_url,
+        personal_photo_url,
+        governorates:training_governorate_id (name)
+      `)
+      .eq("approval_status", "approved");
+
+    // Combine both sources
+    const combinedCaptains: Captain[] = [];
+    
+    // Add captain_profiles data
+    if (captainProfiles) {
+      captainProfiles.forEach((captain: any) => {
+        combinedCaptains.push({
+          ...captain,
+          governorate_name: captain.governorates?.name || null,
+        });
+      });
     }
+
+    // Add approved profiles that aren't already in captain_profiles
+    if (approvedProfiles) {
+      const existingUserIds = combinedCaptains.map(c => c.user_id);
+      
+      approvedProfiles.forEach((profile: any) => {
+        // Check if this captain is already in the list
+        if (!existingUserIds.includes(profile.user_id)) {
+          combinedCaptains.push({
+            id: profile.id,
+            user_id: profile.user_id,
+            full_name: profile.full_name || "كابتن",
+            phone: profile.phone,
+            governorate_id: profile.training_governorate_id,
+            governorate_name: profile.governorates?.name || null,
+            car_type: profile.car_type,
+            transmission_type: profile.transmission_type,
+            car_photo_url: profile.car_photo_url,
+            personal_photo_url: profile.personal_photo_url,
+            hourly_rate: 100, // Default rate
+            bio: null,
+            is_available: true,
+            rating: 5.0,
+            total_sessions: 0,
+          });
+        } else {
+          // Update existing captain with profile photos if missing
+          const existingIndex = combinedCaptains.findIndex(c => c.user_id === profile.user_id);
+          if (existingIndex !== -1) {
+            const existing = combinedCaptains[existingIndex];
+            if (!existing.personal_photo_url && profile.personal_photo_url) {
+              combinedCaptains[existingIndex].personal_photo_url = profile.personal_photo_url;
+            }
+            if (!existing.car_photo_url && profile.car_photo_url) {
+              combinedCaptains[existingIndex].car_photo_url = profile.car_photo_url;
+            }
+            if (!existing.car_type && profile.car_type) {
+              combinedCaptains[existingIndex].car_type = profile.car_type;
+            }
+            if (!existing.transmission_type && profile.transmission_type) {
+              combinedCaptains[existingIndex].transmission_type = profile.transmission_type;
+            }
+          }
+        }
+      });
+    }
+
+    setCaptains(combinedCaptains);
     setLoading(false);
   };
 
