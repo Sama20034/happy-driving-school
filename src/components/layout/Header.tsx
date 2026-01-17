@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, User, Calendar, LogOut, Settings, ShoppingCart, Package } from "lucide-react";
+import { Menu, X, User, Calendar, LogOut, Settings, ShoppingCart, Package, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,7 +23,7 @@ const navLinks = [
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, isAdmin, signOut, loading } = useAuth();
+  const { user, isAdmin, userRole, signOut, loading } = useAuth();
   const { getTotalItems } = useCart();
   const navigate = useNavigate();
 
@@ -84,6 +84,17 @@ const Header = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 bg-card">
+                  {(userRole === 'captain' || userRole === 'trainee') && (
+                    <DropdownMenuItem asChild>
+                      <Link 
+                        to={userRole === 'captain' ? '/captain-dashboard' : '/trainee-dashboard'} 
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <LayoutDashboard size={16} />
+                        لوحة التحكم
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link to="/my-bookings" className="flex items-center gap-2 cursor-pointer">
                       <Calendar size={16} />
@@ -100,7 +111,7 @@ const Header = () => {
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="flex items-center gap-2 cursor-pointer">
                         <Settings size={16} />
-                        لوحة التحكم
+                        لوحة الأدمن
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -159,6 +170,16 @@ const Header = () => {
               ))}
               {user && (
                 <>
+                  {(userRole === 'captain' || userRole === 'trainee') && (
+                    <Link
+                      to={userRole === 'captain' ? '/captain-dashboard' : '/trainee-dashboard'}
+                      className="text-foreground/80 hover:text-primary transition-colors font-medium py-2 flex items-center gap-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <LayoutDashboard size={18} />
+                      لوحة التحكم
+                    </Link>
+                  )}
                   <Link
                     to="/my-bookings"
                     className="text-foreground/80 hover:text-primary transition-colors font-medium py-2 flex items-center gap-2"
@@ -174,7 +195,7 @@ const Header = () => {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <Settings size={18} />
-                      لوحة التحكم
+                      لوحة الأدمن
                     </Link>
                   )}
                 </>
