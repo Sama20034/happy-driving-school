@@ -9,7 +9,8 @@ import {
   LogOut,
   ChevronRight,
   Globe,
-  UserCheck
+  UserCheck,
+  CreditCard
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,6 +22,7 @@ import { ShoppingBag, FolderOpen, Package, Ticket } from "lucide-react";
 const menuItems = [
   { title: "لوحة التحكم", url: "/admin", icon: LayoutDashboard },
   { title: "موافقات المستخدمين", url: "/admin/user-approvals", icon: UserCheck },
+  { title: "إدارة الديبوزت", url: "/admin/booking-deposits", icon: CreditCard },
   { title: "الحجوزات", url: "/admin/bookings", icon: Calendar },
   { title: "أكواد الخصم", url: "/admin/discount-codes", icon: Ticket },
   { title: "الدول", url: "/admin/countries", icon: Globe },
