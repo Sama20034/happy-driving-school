@@ -25,11 +25,14 @@ const benefits = [
 
 const WhyUsSection = () => {
   return (
-    <section className="section bg-card">
-      <div className="container mx-auto px-4">
+    <section className="section bg-background relative overflow-hidden">
+      {/* Subtle background decoration */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/[0.02] rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+      
+      <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
         <div className="text-center mb-16">
-          <span className="text-primary text-sm font-medium tracking-wide mb-3 block">
+          <span className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
             المميزات
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -45,10 +48,10 @@ const WhyUsSection = () => {
           {benefits.map((benefit, index) => (
             <div 
               key={index} 
-              className="group p-8 rounded-2xl bg-background border border-border/50 hover:border-primary/20 hover:shadow-soft-md transition-all duration-300"
+              className="group p-8 rounded-2xl bg-card border border-primary/10 hover:border-primary/25 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
             >
-              <div className="w-14 h-14 rounded-xl bg-primary/8 flex items-center justify-center mb-6 group-hover:bg-primary/12 transition-colors">
-                <benefit.icon className="w-6 h-6 text-primary" />
+              <div className="w-14 h-14 rounded-xl gradient-navy flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-primary/20">
+                <benefit.icon className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 {benefit.title}

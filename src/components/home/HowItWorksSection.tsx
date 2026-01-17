@@ -29,11 +29,17 @@ const steps = [
 
 const HowItWorksSection = () => {
   return (
-    <section className="section bg-background">
-      <div className="container mx-auto px-4">
+    <section className="section gradient-navy-soft relative overflow-hidden">
+      {/* Background pattern */}
+      <div className="absolute inset-0 opacity-[0.015]" style={{
+        backgroundImage: `radial-gradient(circle at 2px 2px, hsl(var(--primary)) 1px, transparent 0)`,
+        backgroundSize: '32px 32px'
+      }} />
+      
+      <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
         <div className="text-center mb-16">
-          <span className="text-primary text-sm font-medium tracking-wide mb-3 block">
+          <span className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
             الخطوات
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -45,20 +51,20 @@ const HowItWorksSection = () => {
         </div>
 
         {/* Steps */}
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
             {/* Connection line for desktop */}
-            <div className="hidden md:block absolute top-10 left-[15%] right-[15%] h-[2px] bg-border" />
+            <div className="hidden md:block absolute top-16 left-[12%] right-[12%] h-[3px] bg-gradient-to-l from-primary/30 via-primary/50 to-primary/30 rounded-full" />
             
             {steps.map((step, index) => (
               <div key={index} className="relative text-center group">
-                {/* Number circle */}
-                <div className="relative z-10 w-20 h-20 rounded-full bg-card border-2 border-border flex items-center justify-center mx-auto mb-6 group-hover:border-primary/30 transition-colors">
-                  <span className="text-2xl font-bold text-primary">{step.number}</span>
+                {/* Number circle with gradient */}
+                <div className="relative z-10 w-20 h-20 rounded-2xl gradient-navy flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/25 group-hover:scale-105 transition-transform">
+                  <span className="text-2xl font-bold text-white">{step.number}</span>
                 </div>
                 
                 {/* Icon */}
-                <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 border border-primary/15">
                   <step.icon className="w-5 h-5 text-primary" />
                 </div>
                 
