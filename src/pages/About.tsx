@@ -287,7 +287,7 @@ const About = () => {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Button 
                   size="lg" 
-                  className="bg-background text-primary hover:bg-background/90 rounded-full px-10 py-6 text-lg font-semibold shadow-xl shadow-primary/20"
+                  className="bg-white text-primary hover:bg-white/95 rounded-full px-10 py-6 text-lg font-semibold shadow-xl shadow-black/20"
                   asChild
                 >
                   <Link to="/auth">
@@ -298,7 +298,7 @@ const About = () => {
                 <Button 
                   size="lg" 
                   variant="outline"
-                  className="border-2 border-background/30 text-primary-foreground hover:bg-background/10 hover:border-background/50 rounded-full px-10 py-6 text-lg"
+                  className="bg-white/10 border-2 border-white/30 text-white hover:bg-white/20 hover:border-white/50 rounded-full px-10 py-6 text-lg backdrop-blur-sm"
                   asChild
                 >
                   <a href="tel:01220501299">
