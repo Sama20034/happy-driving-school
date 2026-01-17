@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Select,
@@ -24,8 +25,8 @@ import {
 
 interface Captain {
   id: string;
-  name: string;
-  branches: { name: string } | null;
+  full_name: string;
+  governorates?: { name: string } | null;
 }
 
 interface Availability {
@@ -35,6 +36,15 @@ interface Availability {
   start_time: string;
   end_time: string;
   slot_duration_minutes: number;
+  is_active: boolean;
+}
+
+interface CaptainScheduleSlot {
+  id: string;
+  captain_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
   is_active: boolean;
 }
 
@@ -52,6 +62,7 @@ const CaptainAvailability = () => {
   const [captains, setCaptains] = useState<Captain[]>([]);
   const [selectedCaptainId, setSelectedCaptainId] = useState<string>("");
   const [availability, setAvailability] = useState<Availability[]>([]);
+  const [captainSchedule, setCaptainSchedule] = useState<CaptainScheduleSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -62,21 +73,24 @@ const CaptainAvailability = () => {
   useEffect(() => {
     if (selectedCaptainId) {
       fetchAvailability(selectedCaptainId);
+      fetchCaptainSchedule(selectedCaptainId);
     }
   }, [selectedCaptainId]);
 
   const fetchCaptains = async () => {
     const { data, error } = await supabase
-      .from("captains")
-      .select("id, name, branches(name)")
-      .order("name");
+      .from("captain_profiles")
+      .select(
+        "id, full_name, governorates!captain_profiles_governorate_id_fkey(name)"
+      )
+      .order("full_name");
 
     if (error) {
       toast.error("خطأ في تحميل الكباتن");
     } else {
-      setCaptains(data || []);
+      setCaptains((data as any) || []);
       if (data && data.length > 0) {
-        setSelectedCaptainId(data[0].id);
+        setSelectedCaptainId((data as any)[0].id);
       }
     }
     setLoading(false);
@@ -94,6 +108,23 @@ const CaptainAvailability = () => {
     } else {
       setAvailability(data || []);
     }
+  };
+
+  const fetchCaptainSchedule = async (captainId: string) => {
+    const { data, error } = await supabase
+      .from("captain_schedule")
+      .select("*")
+      .eq("captain_id", captainId)
+      .order("day_of_week")
+      .order("start_time");
+
+    if (error) {
+      console.error("Error fetching captain_schedule:", error);
+      setCaptainSchedule([]);
+      return;
+    }
+
+    setCaptainSchedule((data as any) || []);
   };
 
   const addNewDay = () => {
@@ -221,7 +252,8 @@ const CaptainAvailability = () => {
               <SelectContent>
                 {captains.map((captain) => (
                   <SelectItem key={captain.id} value={captain.id}>
-                    {captain.name} - {captain.branches?.name}
+                    {captain.full_name}
+                    {captain.governorates?.name ? ` - ${captain.governorates.name}` : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -229,14 +261,69 @@ const CaptainAvailability = () => {
           </CardContent>
         </Card>
 
-        {/* Availability Schedule */}
+        {/* Captain dashboard schedule (captain_schedule) - Read only */}
+        {selectedCaptainId && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                مواعيد الكابتن (من لوحة الكابتن)
+              </CardTitle>
+              <CardDescription>
+                عرض المواعيد التي يحددها الكابتن داخل لوحة التحكم الخاصة به
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {captainSchedule.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  لا توجد مواعيد محددة من الكابتن.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {DAYS_OF_WEEK.map((day) => {
+                    const slots = captainSchedule.filter((s) => s.day_of_week === day.value);
+                    return (
+                      <div key={day.value} className="rounded-xl border border-border p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-semibold">{day.label}</h3>
+                          <Badge variant="outline">{slots.length} فترة</Badge>
+                        </div>
+                        {slots.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">لا توجد فترات</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {slots.map((slot) => (
+                              <div
+                                key={slot.id}
+                                className="flex flex-wrap items-center gap-3 rounded-lg bg-muted/50 p-3"
+                              >
+                                <div className="text-sm font-medium">
+                                  {slot.start_time} - {slot.end_time}
+                                </div>
+                                <Badge variant={slot.is_active ? "default" : "secondary"}>
+                                  {slot.is_active ? "مفعّل" : "معطّل"}
+                                </Badge>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Availability Schedule (captain_availability) */}
         {selectedCaptainId && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>جدول المواعيد</CardTitle>
+                <CardTitle>جدول الأوقات المتاحة للحجز</CardTitle>
                 <CardDescription>
-                  حدد أيام وساعات العمل ومدة كل حجز
+                  هذا الجدول هو الذي يظهر في اختيار الموعد أثناء الحجز
                 </CardDescription>
               </div>
               <Button onClick={addNewDay} variant="outline">
