@@ -1,72 +1,73 @@
-import { UserPlus, Search, CreditCard, MessageCircle } from "lucide-react";
+import { UserPlus, Search, CreditCard, Car } from "lucide-react";
 
 const steps = [
   {
     icon: UserPlus,
     number: "١",
-    title: "سجّل بياناتك",
-    description: "أنشئ حساب مجاني في دقائق"
+    title: "سجّل حسابك",
+    description: "أنشئ حساب مجاني في دقيقة"
   },
   {
     icon: Search,
     number: "٢",
-    title: "اختار الكابتن",
-    description: "تصفح الكباتن حسب الموقع والتقييم"
+    title: "اختار كابتن",
+    description: "تصفح الكباتن والتقييمات"
   },
   {
     icon: CreditCard,
     number: "٣",
     title: "ادفع الديبوزيت",
-    description: "ادفع ديبوزيت بسيط لتأكيد الحجز"
+    description: "أكّد الحجز بديبوزيت بسيط"
   },
   {
-    icon: MessageCircle,
+    icon: Car,
     number: "٤",
     title: "ابدأ التدريب",
-    description: "تواصل مع الكابتن وابدأ رحلتك"
+    description: "قابل الكابتن وابدأ التعلم"
   }
 ];
 
 const HowItWorksSection = () => {
   return (
-    <section className="py-24 bg-secondary/30 relative overflow-hidden">
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-30" style={{
-        backgroundImage: `radial-gradient(circle at 1px 1px, hsl(var(--primary) / 0.1) 1px, transparent 0)`,
-        backgroundSize: '24px 24px'
-      }} />
-      
-      <div className="container mx-auto px-4 relative z-10">
+    <section className="section bg-background">
+      <div className="container mx-auto px-4">
+        {/* Header */}
         <div className="text-center mb-16">
-          <span className="inline-block bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium mb-4">
-            خطوات الحجز
+          <span className="text-primary text-sm font-medium tracking-wide mb-3 block">
+            الخطوات
           </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">إزاي تحجز؟</h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            ٤ خطوات بسيطة وتبدأ رحلة تعلم القيادة
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            إزاي تحجز؟
+          </h2>
+          <p className="text-muted-foreground text-lg max-w-lg mx-auto">
+            ٤ خطوات بسيطة وتبدأ رحلة التعلم
           </p>
         </div>
 
-        <div className="relative max-w-5xl mx-auto">
-          {/* Connection line */}
-          <div className="hidden lg:block absolute top-1/2 left-12 right-12 h-1 bg-gradient-to-l from-primary via-primary/50 to-primary/20 -translate-y-1/2 rounded-full" />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Steps */}
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+            {/* Connection line for desktop */}
+            <div className="hidden md:block absolute top-10 left-[15%] right-[15%] h-[2px] bg-border" />
+            
             {steps.map((step, index) => (
-              <div key={index} className="relative group">
-                <div className="bg-card rounded-3xl p-8 text-center border border-border hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-2 relative z-10">
-                  {/* Step Number */}
-                  <div className="w-12 h-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-xl mx-auto mb-6 shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
-                    {step.number}
-                  </div>
-                  
-                  <div className="w-20 h-20 rounded-full bg-background border-2 border-primary/20 flex items-center justify-center mx-auto mb-6 group-hover:border-primary/40 group-hover:bg-primary/5 transition-all">
-                    <step.icon className="text-primary" size={32} />
-                  </div>
-                  
-                  <h3 className="text-xl font-bold mb-3">{step.title}</h3>
-                  <p className="text-muted-foreground">{step.description}</p>
+              <div key={index} className="relative text-center group">
+                {/* Number circle */}
+                <div className="relative z-10 w-20 h-20 rounded-full bg-card border-2 border-border flex items-center justify-center mx-auto mb-6 group-hover:border-primary/30 transition-colors">
+                  <span className="text-2xl font-bold text-primary">{step.number}</span>
                 </div>
+                
+                {/* Icon */}
+                <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center mx-auto mb-4">
+                  <step.icon className="w-5 h-5 text-primary" />
+                </div>
+                
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  {step.title}
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  {step.description}
+                </p>
               </div>
             ))}
           </div>
