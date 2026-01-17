@@ -19,6 +19,9 @@ import MyOrders from "./pages/MyOrders";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import PendingApproval from "./pages/PendingApproval";
+import CaptainDashboard from "./pages/CaptainDashboard";
+import TraineeDashboard from "./pages/TraineeDashboard";
+import Chat from "./pages/Chat";
 import AdminLayout from "./components/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Bookings from "./pages/admin/Bookings";
@@ -63,6 +66,9 @@ const App = () => (
             <Route path="/my-orders" element={<MyOrders />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/pending-approval" element={<PendingApproval />} />
+            <Route path="/captain-dashboard" element={<CaptainDashboard />} />
+            <Route path="/trainee-dashboard" element={<TraineeDashboard />} />
+            <Route path="/chat/:bookingId" element={<Chat />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
