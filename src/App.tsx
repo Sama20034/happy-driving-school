@@ -11,6 +11,7 @@ import MyBookings from "./pages/MyBookings";
 import CoursesPage from "./pages/Courses";
 import WhyUsPage from "./pages/WhyUs";
 import About from "./pages/About";
+import Services from "./pages/Services";
 import Store from "./pages/Store";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/why-us" element={<WhyUsPage />} />
             <Route path="/about" element={<About />} />
+            <Route path="/services" element={<Services />} />
             <Route path="/store" element={<Store />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/cart" element={<Cart />} />
