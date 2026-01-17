@@ -72,28 +72,35 @@ export const CaptainCard = ({ captain }: CaptainCardProps) => {
         <CardContent className="space-y-3">
           {captain.governorate_name && (
             <div className="flex items-center gap-2 text-sm">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{captain.governorate_name}</span>
+              <MapPin className="h-4 w-4 text-primary" />
+              <span className="text-muted-foreground">المنطقة:</span>
+              <span className="font-medium">{captain.governorate_name}</span>
             </div>
           )}
 
-          <div className="flex items-center gap-2 text-sm">
-            <Car className="h-4 w-4 text-muted-foreground" />
-            <span>{captain.car_type || "غير محدد"}</span>
+          <div className="flex items-center gap-2 text-sm flex-wrap">
+            <Car className="h-4 w-4 text-primary" />
+            <span className="text-muted-foreground">السيارة:</span>
+            <span className="font-medium">{captain.car_type || "غير محدد"}</span>
             {captain.transmission_type && (
               <Badge variant="secondary" className="text-xs">
-                {captain.transmission_type === "automatic" ? "أوتوماتيك" : "مانيوال"}
+                {captain.transmission_type === "automatic" || captain.transmission_type === "أوتوماتيك" 
+                  ? "أوتوماتيك" 
+                  : "مانيوال"}
               </Badge>
             )}
           </div>
 
           <div className="flex items-center gap-2 text-sm">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="font-semibold text-primary">{captain.hourly_rate} جنيه / ساعة</span>
+            <Clock className="h-4 w-4 text-primary" />
+            <span className="text-muted-foreground">السعر:</span>
+            <span className="font-bold text-primary">{captain.hourly_rate} جنيه / ساعة</span>
           </div>
 
           {captain.bio && (
-            <p className="text-sm text-muted-foreground line-clamp-2">{captain.bio}</p>
+            <div className="pt-2 border-t border-border/50">
+              <p className="text-sm text-muted-foreground line-clamp-2">{captain.bio}</p>
+            </div>
           )}
         </CardContent>
 
