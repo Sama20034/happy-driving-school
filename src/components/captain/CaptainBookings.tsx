@@ -131,7 +131,18 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (booking: Booking) => {
+    // If payment is not verified yet, show waiting for admin
+    if (booking.payment_status === "paid") {
+      return <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">في انتظار تأكيد الأدمن</Badge>;
+    }
+    if (booking.payment_status === "rejected") {
+      return <Badge variant="destructive">مرفوض من الأدمن</Badge>;
+    }
+    if (booking.payment_status === "verified" && booking.status === "pending") {
+      return <Badge className="bg-green-500/20 text-green-600 border-green-500/30">تم التأكيد - جاهز للتدريب</Badge>;
+    }
+    
     const variants: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
       pending: { label: "في الانتظار", variant: "secondary" },
       confirmed: { label: "مؤكد", variant: "default" },
@@ -139,7 +150,7 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
       completed: { label: "مكتمل", variant: "outline" },
       cancelled: { label: "ملغي", variant: "destructive" },
     };
-    const { label, variant } = variants[status] || { label: status, variant: "secondary" };
+    const { label, variant } = variants[booking.status] || { label: booking.status, variant: "secondary" };
     return <Badge variant={variant}>{label}</Badge>;
   };
 
@@ -217,7 +228,7 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">{booking.trainee_name}</span>
-                      {getStatusBadge(booking.status)}
+                      {getStatusBadge(booking)}
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Phone className="h-4 w-4" />
@@ -254,27 +265,32 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
                     )}
                   </div>
 
-                  {booking.status === "pending" && (
-                    <div className="flex gap-2">
+                  {/* Show message based on payment status */}
+                  <div className="flex flex-col gap-2 items-end">
+                    {booking.payment_status === "paid" && (
+                      <p className="text-sm text-yellow-600 bg-yellow-50 px-3 py-2 rounded-lg">
+                        ⏳ في انتظار تأكيد الديبوزت من الأدمن
+                      </p>
+                    )}
+                    {booking.payment_status === "rejected" && (
+                      <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                        ❌ تم رفض الديبوزت من الأدمن
+                      </p>
+                    )}
+                    {booking.payment_status === "verified" && booking.status === "confirmed" && (
                       <Button
                         size="sm"
-                        onClick={() => updateBookingStatus(booking.id, "confirmed", booking.trainee_id, booking.trainee_name)}
+                        variant="outline"
                         className="gap-1"
+                        onClick={() => {
+                          window.location.href = "/chat";
+                        }}
                       >
-                        <Check className="h-4 w-4" />
-                        تأكيد
+                        <MessageSquare className="h-4 w-4" />
+                        فتح المحادثة
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => updateBookingStatus(booking.id, "rejected", booking.trainee_id, booking.trainee_name)}
-                        className="gap-1"
-                      >
-                        <X className="h-4 w-4" />
-                        رفض
-                      </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

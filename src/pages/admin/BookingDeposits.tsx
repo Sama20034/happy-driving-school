@@ -29,6 +29,7 @@ import {
 
 interface Booking {
   id: string;
+  trainee_id: string;
   trainee_name: string;
   trainee_phone: string;
   booking_date: string;
@@ -40,8 +41,10 @@ interface Booking {
   payment_status: string;
   status: string;
   created_at: string;
+  captain_id: string;
   captain_profiles: {
     full_name: string;
+    user_id: string;
   } | null;
 }
 
@@ -63,7 +66,7 @@ const BookingDeposits = () => {
         .from("captain_bookings")
         .select(`
           *,
-          captain_profiles (full_name)
+          captain_profiles (full_name, user_id)
         `)
         .not("deposit_image_url", "is", null)
         .order("created_at", { ascending: false });
@@ -77,17 +80,67 @@ const BookingDeposits = () => {
     }
   };
 
-  const updatePaymentStatus = async (bookingId: string, status: "verified" | "rejected") => {
+  const updatePaymentStatus = async (booking: Booking, status: "verified" | "rejected") => {
     setActionLoading(true);
     try {
+      // Update payment status
       const { error } = await supabase
         .from("captain_bookings")
-        .update({ payment_status: status })
-        .eq("id", bookingId);
+        .update({ 
+          payment_status: status,
+          status: status === "verified" ? "confirmed" : "rejected"
+        })
+        .eq("id", booking.id);
 
       if (error) throw error;
+
+      // Send notifications to trainee and captain
+      const notifications = [
+        {
+          user_id: booking.trainee_id,
+          title: status === "verified" ? "تم تأكيد الديبوزت" : "تم رفض الديبوزت",
+          message: status === "verified" 
+            ? "تم تأكيد الديبوزت الخاص بك. يمكنك الآن بدء المحادثة مع الكابتن."
+            : "للأسف تم رفض الديبوزت. يرجى التواصل مع الدعم.",
+          type: "booking",
+          related_id: booking.id,
+        }
+      ];
+
+      // Add notification for captain if they have user_id
+      if (booking.captain_profiles?.user_id) {
+        notifications.push({
+          user_id: booking.captain_profiles.user_id,
+          title: status === "verified" ? "حجز جديد مؤكد" : "تم رفض حجز",
+          message: status === "verified" 
+            ? `تم تأكيد حجز ${booking.trainee_name}. يمكنك الآن بدء المحادثة.`
+            : `تم رفض حجز ${booking.trainee_name}.`,
+          type: "booking",
+          related_id: booking.id,
+        });
+      }
+
+      await supabase.from("notifications").insert(notifications);
+
+      // If verified, create chat conversation
+      if (status === "verified") {
+        // Check if conversation already exists
+        const { data: existingConversation } = await supabase
+          .from("chat_conversations")
+          .select("id")
+          .eq("booking_id", booking.id)
+          .single();
+
+        if (!existingConversation) {
+          await supabase.from("chat_conversations").insert({
+            booking_id: booking.id,
+            captain_id: booking.captain_id,
+            trainee_id: booking.trainee_id,
+          });
+        }
+      }
       
-      toast.success(status === "verified" ? "تم التحقق من الدفع" : "تم رفض الدفع");
+      toast.success(status === "verified" ? "تم التحقق من الدفع وبدء المحادثة" : "تم رفض الدفع");
       fetchBookings();
       setSelectedBooking(null);
     } catch (error) {
@@ -225,7 +278,7 @@ const BookingDeposits = () => {
                       <Button
                         size="sm"
                         className="flex-1 bg-green-600 hover:bg-green-700"
-                        onClick={() => updatePaymentStatus(booking.id, "verified")}
+                        onClick={() => updatePaymentStatus(booking, "verified")}
                         disabled={actionLoading}
                       >
                         <Check className="h-4 w-4 ml-1" />
@@ -235,7 +288,7 @@ const BookingDeposits = () => {
                         size="sm"
                         variant="destructive"
                         className="flex-1"
-                        onClick={() => updatePaymentStatus(booking.id, "rejected")}
+                        onClick={() => updatePaymentStatus(booking, "rejected")}
                         disabled={actionLoading}
                       >
                         <X className="h-4 w-4 ml-1" />
@@ -345,7 +398,7 @@ const BookingDeposits = () => {
                 <div className="flex gap-3 pt-4">
                   <Button
                     className="flex-1 bg-green-600 hover:bg-green-700"
-                    onClick={() => updatePaymentStatus(selectedBooking.id, "verified")}
+                    onClick={() => updatePaymentStatus(selectedBooking, "verified")}
                     disabled={actionLoading}
                   >
                     {actionLoading ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : <Check className="h-4 w-4 ml-2" />}
@@ -354,7 +407,7 @@ const BookingDeposits = () => {
                   <Button
                     variant="destructive"
                     className="flex-1"
-                    onClick={() => updatePaymentStatus(selectedBooking.id, "rejected")}
+                    onClick={() => updatePaymentStatus(selectedBooking, "rejected")}
                     disabled={actionLoading}
                   >
                     {actionLoading ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : <X className="h-4 w-4 ml-2" />}
