@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { Check, X, Eye, UserCircle, CreditCard, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Check, X, Eye, UserCircle, CreditCard, Clock, CheckCircle, XCircle, Loader2, FileText, Car, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -20,6 +20,9 @@ interface PendingUser {
   approval_status: string;
   id_card_url: string | null;
   personal_photo_url: string | null;
+  car_license_url: string | null;
+  driving_license_url: string | null;
+  car_photo_url: string | null;
   created_at: string;
   role: string;
 }
@@ -138,6 +141,26 @@ const UserApprovals = () => {
   };
 
   const pendingCount = pendingUsers.filter(u => u.approval_status === 'pending').length;
+
+  const DocumentCard = ({ title, icon: Icon, url }: { title: string; icon: React.ElementType; url: string | null }) => (
+    <div className="space-y-2">
+      <h4 className="font-semibold flex items-center gap-2 text-sm">
+        <Icon className="h-4 w-4" />
+        {title}
+      </h4>
+      {url ? (
+        <img 
+          src={url} 
+          alt={title} 
+          className="w-full h-40 object-cover rounded-lg border"
+        />
+      ) : (
+        <div className="bg-muted rounded-lg p-6 text-center text-muted-foreground h-40 flex items-center justify-center">
+          <span className="text-sm">لم يتم الرفع</span>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <>
@@ -271,45 +294,35 @@ const UserApprovals = () => {
 
       {/* Documents Modal */}
       <Dialog open={showDocuments} onOpenChange={setShowDocuments}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>مستندات المستخدم - {selectedUser?.full_name}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              مستندات المستخدم - {selectedUser?.full_name}
+              {selectedUser && getRoleBadge(selectedUser.role)}
+            </DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div className="space-y-2">
-              <h4 className="font-semibold flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                صورة البطاقة
-              </h4>
-              {selectedUser?.id_card_url ? (
-                <img 
-                  src={selectedUser.id_card_url} 
-                  alt="ID Card" 
-                  className="w-full rounded-lg border"
-                />
-              ) : (
-                <div className="bg-muted rounded-lg p-8 text-center text-muted-foreground">
-                  لم يتم رفع صورة البطاقة
-                </div>
-              )}
+          
+          <div className="space-y-6 mt-4">
+            {/* Common Documents */}
+            <div>
+              <h3 className="font-semibold mb-3 text-lg">المستندات الأساسية</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DocumentCard title="صورة البطاقة" icon={CreditCard} url={selectedUser?.id_card_url || null} />
+                <DocumentCard title="الصورة الشخصية" icon={UserCircle} url={selectedUser?.personal_photo_url || null} />
+              </div>
             </div>
-            <div className="space-y-2">
-              <h4 className="font-semibold flex items-center gap-2">
-                <UserCircle className="h-5 w-5" />
-                الصورة الشخصية
-              </h4>
-              {selectedUser?.personal_photo_url ? (
-                <img 
-                  src={selectedUser.personal_photo_url} 
-                  alt="Personal Photo" 
-                  className="w-full rounded-lg border"
-                />
-              ) : (
-                <div className="bg-muted rounded-lg p-8 text-center text-muted-foreground">
-                  لم يتم رفع الصورة الشخصية
+
+            {/* Captain-specific Documents */}
+            {selectedUser?.role === 'captain' && (
+              <div>
+                <h3 className="font-semibold mb-3 text-lg text-primary">مستندات الكابتن</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <DocumentCard title="رخصة السيارة" icon={FileText} url={selectedUser?.car_license_url || null} />
+                  <DocumentCard title="الرخصة الشخصية" icon={FileText} url={selectedUser?.driving_license_url || null} />
+                  <DocumentCard title="صورة العربية" icon={Camera} url={selectedUser?.car_photo_url || null} />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
