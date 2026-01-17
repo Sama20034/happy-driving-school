@@ -12,8 +12,11 @@
        ═══════════════════════════════════════════════════════════
        
        Primary: #1E2A5C - Deep Navy Blue (Trust & Safety)
-       Background: #6D202A - Dark Maroon (Elegance & Warmth)
-       Accent: #F5F1E8 - Off-White (Light elements)
+       Background: #F5F1E8 - Warm Off-White (Clean & Warm)
+       Accent: #10B981 - Green (Success & Confidence)
+       Secondary Accent: #6D202A - Maroon (Elegance touches)
+       Warning: Amber
+       Info: Sky Blue
        
     ═══════════════════════════════════════════════════════════ */
 
@@ -21,29 +24,33 @@
     --primary: 228 52% 24%;
     --primary-foreground: 0 0% 100%;
 
-    /* Background - Dark Maroon #6D202A */
-    --background: 352 55% 28%;
-    --foreground: 40 33% 93%;
+    /* Background - Warm Off-White #F5F1E8 */
+    --background: 40 33% 94%;
+    --foreground: 228 52% 20%;
 
-    /* Card - Slightly lighter maroon for contrast */
-    --card: 352 50% 32%;
-    --card-foreground: 40 33% 93%;
+    /* Card - Pure White for clean contrast */
+    --card: 0 0% 100%;
+    --card-foreground: 228 52% 20%;
 
     /* Popover - Same as card */
-    --popover: 352 50% 32%;
-    --popover-foreground: 40 33% 93%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 52% 20%;
 
-    /* Secondary - Off-White #F5F1E8 */
-    --secondary: 40 33% 93%;
-    --secondary-foreground: 352 55% 28%;
+    /* Secondary - Lighter Navy */
+    --secondary: 228 30% 95%;
+    --secondary-foreground: 228 52% 24%;
 
-    /* Muted - Darker maroon */
-    --muted: 352 45% 24%;
-    --muted-foreground: 40 20% 75%;
+    /* Muted - Soft warm gray */
+    --muted: 40 20% 90%;
+    --muted-foreground: 228 20% 45%;
 
-    /* Accent - Navy Blue (same as primary for consistency) */
-    --accent: 228 52% 35%;
+    /* Accent - Green #10B981 (Success & Confidence) */
+    --accent: 160 84% 39%;
     --accent-foreground: 0 0% 100%;
+
+    /* Maroon Accent - #6D202A for special touches */
+    --maroon: 352 55% 28%;
+    --maroon-foreground: 0 0% 100%;
 
     /* Destructive - Soft Red */
     --destructive: 0 72% 51%;
@@ -51,16 +58,16 @@
 
     /* Warning - Amber */
     --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --warning-foreground: 228 52% 15%;
 
     /* Info - Sky Blue */
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
 
-    /* Borders - Subtle maroon */
-    --border: 352 40% 35%;
-    --input: 352 40% 35%;
-    --ring: 40 33% 93%;
+    /* Borders - Subtle warm gray */
+    --border: 40 20% 85%;
+    --input: 40 20% 85%;
+    --ring: 228 52% 24%;
 
     --radius: 0.875rem;
 
@@ -70,32 +77,34 @@
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(228, 52%, 24%) 0%, hsl(228, 45%, 32%) 100%);
-    --gradient-hero: linear-gradient(160deg, hsl(352, 55%, 24%) 0%, hsl(352, 50%, 28%) 50%, hsl(352, 45%, 32%) 100%);
-    --gradient-soft: linear-gradient(180deg, hsl(352, 55%, 28%) 0%, hsl(352, 50%, 25%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(352, 50%, 34%) 0%, hsl(352, 48%, 30%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(228, 52%, 30%) 0%, hsl(228, 50%, 40%) 100%);
+    --gradient-hero: linear-gradient(160deg, hsl(40, 33%, 96%) 0%, hsl(40, 30%, 94%) 50%, hsl(40, 25%, 92%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(40, 33%, 94%) 0%, hsl(40, 30%, 92%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(40, 20%, 98%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(160, 84%, 39%) 0%, hsl(160, 80%, 45%) 100%);
+    --gradient-maroon: linear-gradient(135deg, hsl(352, 55%, 28%) 0%, hsl(352, 50%, 35%) 100%);
 
     /* Shadows - Elegant and subtle */
-    --shadow-xs: 0 1px 2px 0 hsl(0 0% 0% / 0.1);
-    --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.15), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.2), 0 2px 4px -2px hsl(0 0% 0% / 0.15);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.25), 0 4px 6px -4px hsl(0 0% 0% / 0.15);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.25), 0 8px 10px -6px hsl(0 0% 0% / 0.15);
-    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.35);
-    --shadow-glow: 0 0 40px -10px hsl(40 33% 93% / 0.2);
-    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.25);
-    --shadow-card-hover: 0 12px 32px -8px hsl(0 0% 0% / 0.35);
-    --shadow-button: 0 4px 14px 0 hsl(0 0% 0% / 0.3);
+    --shadow-xs: 0 1px 2px 0 hsl(228 52% 24% / 0.05);
+    --shadow-sm: 0 1px 3px 0 hsl(228 52% 24% / 0.08), 0 1px 2px -1px hsl(228 52% 24% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(228 52% 24% / 0.1), 0 2px 4px -2px hsl(228 52% 24% / 0.08);
+    --shadow-lg: 0 10px 15px -3px hsl(228 52% 24% / 0.12), 0 4px 6px -4px hsl(228 52% 24% / 0.08);
+    --shadow-xl: 0 20px 25px -5px hsl(228 52% 24% / 0.12), 0 8px 10px -6px hsl(228 52% 24% / 0.08);
+    --shadow-2xl: 0 25px 50px -12px hsl(228 52% 24% / 0.2);
+    --shadow-glow: 0 0 40px -10px hsl(228 52% 24% / 0.15);
+    --shadow-card: 0 4px 20px -4px hsl(228 52% 24% / 0.1);
+    --shadow-card-hover: 0 12px 32px -8px hsl(228 52% 24% / 0.18);
+    --shadow-button: 0 4px 14px 0 hsl(228 52% 24% / 0.25);
+    --shadow-maroon: 0 4px 20px -4px hsl(352 55% 28% / 0.3);
 
-    /* Sidebar */
-    --sidebar-background: 352 50% 26%;
-    --sidebar-foreground: 40 33% 93%;
-    --sidebar-primary: 228 52% 24%;
+    /* Sidebar - Uses primary navy */
+    --sidebar-background: 228 52% 22%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 160 84% 39%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 352 45% 35%;
-    --sidebar-accent-foreground: 40 33% 93%;
-    --sidebar-border: 352 40% 32%;
-    --sidebar-ring: 40 33% 93%;
+    --sidebar-accent: 228 45% 30%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 228 40% 28%;
+    --sidebar-ring: 160 84% 39%;
   }
 
   .dark {
