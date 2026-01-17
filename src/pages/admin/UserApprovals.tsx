@@ -39,6 +39,7 @@ const UserApprovals = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const fetchPendingUsers = async () => {
     setLoading(true);
@@ -167,7 +168,8 @@ const UserApprovals = () => {
         <img 
           src={url} 
           alt={title} 
-          className="w-full h-40 object-cover rounded-lg border"
+          className="w-full h-40 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => setPreviewImage(url)}
         />
       ) : (
         <div className="bg-muted rounded-lg p-6 text-center text-muted-foreground h-40 flex items-center justify-center">
@@ -393,6 +395,22 @@ const UserApprovals = () => {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Preview Modal */}
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-5xl max-h-[95vh] p-2">
+          <DialogHeader className="sr-only">
+            <DialogTitle>عرض الصورة</DialogTitle>
+          </DialogHeader>
+          {previewImage && (
+            <img 
+              src={previewImage} 
+              alt="Preview" 
+              className="w-full h-full max-h-[85vh] object-contain rounded-lg"
+            />
+          )}
         </DialogContent>
       </Dialog>
     </>
