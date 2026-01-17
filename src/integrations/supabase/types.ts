@@ -542,6 +542,7 @@ export type Database = {
           approval_status: string | null
           car_license_url: string | null
           car_photo_url: string | null
+          car_type: string | null
           created_at: string
           driving_license_url: string | null
           full_name: string | null
@@ -551,6 +552,8 @@ export type Database = {
           personal_photo_url: string | null
           phone: string | null
           rejection_reason: string | null
+          training_governorate_id: string | null
+          transmission_type: string | null
           updated_at: string
           user_id: string
         }
@@ -558,6 +561,7 @@ export type Database = {
           approval_status?: string | null
           car_license_url?: string | null
           car_photo_url?: string | null
+          car_type?: string | null
           created_at?: string
           driving_license_url?: string | null
           full_name?: string | null
@@ -567,6 +571,8 @@ export type Database = {
           personal_photo_url?: string | null
           phone?: string | null
           rejection_reason?: string | null
+          training_governorate_id?: string | null
+          transmission_type?: string | null
           updated_at?: string
           user_id: string
         }
@@ -574,6 +580,7 @@ export type Database = {
           approval_status?: string | null
           car_license_url?: string | null
           car_photo_url?: string | null
+          car_type?: string | null
           created_at?: string
           driving_license_url?: string | null
           full_name?: string | null
@@ -583,10 +590,20 @@ export type Database = {
           personal_photo_url?: string | null
           phone?: string | null
           rejection_reason?: string | null
+          training_governorate_id?: string | null
+          transmission_type?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_training_governorate_id_fkey"
+            columns: ["training_governorate_id"]
+            isOneToOne: false
+            referencedRelation: "governorates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

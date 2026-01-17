@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Eye, EyeOff, Mail, Lock, User, Car, GraduationCap, Upload, CreditCard, UserCircle, FileText, Camera } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Car, GraduationCap, Upload, CreditCard, UserCircle, FileText, Camera, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,13 @@ import { toast } from "sonner";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type UserRole = 'trainee' | 'captain';
 
@@ -27,7 +34,23 @@ const Auth = () => {
     email: "",
     password: "",
     fullName: "",
+    carType: "",
+    transmissionType: "" as "manual" | "automatic" | "",
+    trainingGovernorateId: "",
   });
+
+  const [governorates, setGovernorates] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    const fetchGovernorates = async () => {
+      const { data } = await supabase
+        .from('governorates')
+        .select('id, name')
+        .order('display_order');
+      if (data) setGovernorates(data);
+    };
+    fetchGovernorates();
+  }, []);
 
   // Document uploads - Common
   const [idCardFile, setIdCardFile] = useState<File | null>(null);
@@ -139,11 +162,18 @@ const Auth = () => {
           return;
         }
 
-        // Validate captain-specific documents
-        if (selectedRole === 'captain' && (!carLicenseFile || !drivingLicenseFile || !carPhotoFile)) {
-          toast.error("يرجى رفع جميع مستندات الكابتن المطلوبة");
-          setIsSubmitting(false);
-          return;
+        // Validate captain-specific documents and fields
+        if (selectedRole === 'captain') {
+          if (!carLicenseFile || !drivingLicenseFile || !carPhotoFile) {
+            toast.error("يرجى رفع جميع مستندات الكابتن المطلوبة");
+            setIsSubmitting(false);
+            return;
+          }
+          if (!formData.carType || !formData.transmissionType || !formData.trainingGovernorateId) {
+            toast.error("يرجى ملء جميع بيانات الكابتن المطلوبة");
+            setIsSubmitting(false);
+            return;
+          }
         }
 
         const { error, data } = await signUp(formData.email, formData.password, formData.fullName, selectedRole);
@@ -182,6 +212,9 @@ const Auth = () => {
             updateData.car_license_url = carLicenseUrl || null;
             updateData.driving_license_url = drivingLicenseUrl || null;
             updateData.car_photo_url = carPhotoUrl || null;
+            updateData.car_type = formData.carType;
+            updateData.transmission_type = formData.transmissionType;
+            updateData.training_governorate_id = formData.trainingGovernorateId;
           }
 
           await supabase
@@ -403,7 +436,68 @@ const Auth = () => {
                   {/* Captain-specific Documents */}
                   {selectedRole === 'captain' && (
                     <>
-                      <Label className="text-sm text-primary font-medium">مستندات الكابتن الإضافية *</Label>
+                      <Label className="text-sm text-primary font-medium">بيانات الكابتن الإضافية *</Label>
+                      
+                      {/* Captain Info Fields */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-2 text-sm">
+                            <Car className="h-4 w-4" />
+                            نوع السيارة
+                          </Label>
+                          <Input
+                            placeholder="مثال: تويوتا كورولا"
+                            value={formData.carType}
+                            onChange={(e) => setFormData({ ...formData, carType: e.target.value })}
+                            className="text-right rounded-xl h-10"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-2 text-sm">
+                            <Car className="h-4 w-4" />
+                            نوع ناقل الحركة
+                          </Label>
+                          <Select
+                            value={formData.transmissionType}
+                            onValueChange={(value: "manual" | "automatic") => 
+                              setFormData({ ...formData, transmissionType: value })
+                            }
+                          >
+                            <SelectTrigger className="text-right rounded-xl h-10">
+                              <SelectValue placeholder="اختر النوع" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="manual">مانوال</SelectItem>
+                              <SelectItem value="automatic">أوتوماتيك</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-2 text-sm">
+                            <MapPin className="h-4 w-4" />
+                            محافظة التدريب
+                          </Label>
+                          <Select
+                            value={formData.trainingGovernorateId}
+                            onValueChange={(value) => 
+                              setFormData({ ...formData, trainingGovernorateId: value })
+                            }
+                          >
+                            <SelectTrigger className="text-right rounded-xl h-10">
+                              <SelectValue placeholder="اختر المحافظة" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {governorates.map((gov) => (
+                                <SelectItem key={gov.id} value={gov.id}>{gov.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <Label className="text-sm text-primary font-medium mt-4">مستندات الكابتن *</Label>
                       <div className="grid grid-cols-3 gap-3">
                         <DocumentUploadField
                           id="carLicenseInput"
