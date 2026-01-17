@@ -17,13 +17,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-import { ShoppingBag, FolderOpen, Package, Ticket } from "lucide-react";
+import { ShoppingBag, FolderOpen, Package, Ticket, MessageSquare } from "lucide-react";
 
 const menuItems = [
   { title: "لوحة التحكم", url: "/admin", icon: LayoutDashboard },
   { title: "موافقات المستخدمين", url: "/admin/user-approvals", icon: UserCheck },
   { title: "إدارة الديبوزت", url: "/admin/booking-deposits", icon: CreditCard },
   { title: "الحجوزات", url: "/admin/bookings", icon: Calendar },
+  { title: "المحادثات", url: "/admin/chats", icon: MessageSquare },
   { title: "أكواد الخصم", url: "/admin/discount-codes", icon: Ticket },
   { title: "الدول", url: "/admin/countries", icon: Globe },
   { title: "المحافظات", url: "/admin/governorates", icon: MapPin },

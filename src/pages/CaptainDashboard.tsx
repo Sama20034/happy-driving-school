@@ -15,6 +15,7 @@ import { CaptainSchedule } from "@/components/captain/CaptainSchedule";
 import { CaptainBookings } from "@/components/captain/CaptainBookings";
 import { NotificationsList } from "@/components/notifications/NotificationsList";
 import { ChatList } from "@/components/chat/ChatList";
+import { AdminSupportButton } from "@/components/chat/AdminSupportButton";
 
 interface CaptainProfile {
   id: string;
@@ -155,9 +156,10 @@ const CaptainDashboard = () => {
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <h1 className="text-3xl font-bold">لوحة تحكم الكابتن</h1>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
+            <AdminSupportButton />
             <Badge variant={formData.is_available ? "default" : "secondary"}>
               {formData.is_available ? "متاح للحجز" : "غير متاح"}
             </Badge>
