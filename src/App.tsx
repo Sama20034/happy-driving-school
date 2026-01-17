@@ -22,6 +22,7 @@ import PendingApproval from "./pages/PendingApproval";
 import CaptainDashboard from "./pages/CaptainDashboard";
 import TraineeDashboard from "./pages/TraineeDashboard";
 import Chat from "./pages/Chat";
+import CaptainsPage from "./pages/CaptainsPage";
 import AdminLayout from "./components/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Bookings from "./pages/admin/Bookings";
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/my-bookings" element={<MyBookings />} />
             <Route path="/courses" element={<CoursesPage />} />
+            <Route path="/captains" element={<CaptainsPage />} />
             <Route path="/why-us" element={<WhyUsPage />} />
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
