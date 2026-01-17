@@ -170,6 +170,165 @@ export type Database = {
           },
         ]
       }
+      captain_bookings: {
+        Row: {
+          booking_date: string
+          booking_time: string
+          captain_id: string
+          created_at: string
+          duration_minutes: number
+          id: string
+          notes: string | null
+          status: string
+          total_price: number
+          trainee_id: string
+          trainee_name: string
+          trainee_phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          booking_date: string
+          booking_time: string
+          captain_id: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          status?: string
+          total_price: number
+          trainee_id: string
+          trainee_name: string
+          trainee_phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          booking_date?: string
+          booking_time?: string
+          captain_id?: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          status?: string
+          total_price?: number
+          trainee_id?: string
+          trainee_name?: string
+          trainee_phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "captain_bookings_captain_id_fkey"
+            columns: ["captain_id"]
+            isOneToOne: false
+            referencedRelation: "captain_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      captain_profiles: {
+        Row: {
+          bio: string | null
+          car_photo_url: string | null
+          car_type: string | null
+          created_at: string
+          full_name: string
+          governorate_id: string | null
+          hourly_rate: number
+          id: string
+          is_available: boolean
+          personal_photo_url: string | null
+          phone: string | null
+          rating: number | null
+          total_sessions: number | null
+          transmission_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          car_photo_url?: string | null
+          car_type?: string | null
+          created_at?: string
+          full_name: string
+          governorate_id?: string | null
+          hourly_rate?: number
+          id?: string
+          is_available?: boolean
+          personal_photo_url?: string | null
+          phone?: string | null
+          rating?: number | null
+          total_sessions?: number | null
+          transmission_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          car_photo_url?: string | null
+          car_type?: string | null
+          created_at?: string
+          full_name?: string
+          governorate_id?: string | null
+          hourly_rate?: number
+          id?: string
+          is_available?: boolean
+          personal_photo_url?: string | null
+          phone?: string | null
+          rating?: number | null
+          total_sessions?: number | null
+          transmission_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "captain_profiles_governorate_id_fkey"
+            columns: ["governorate_id"]
+            isOneToOne: false
+            referencedRelation: "governorates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      captain_schedule: {
+        Row: {
+          captain_id: string
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          start_time: string
+        }
+        Insert: {
+          captain_id: string
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          start_time: string
+        }
+        Update: {
+          captain_id?: string
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "captain_schedule_captain_id_fkey"
+            columns: ["captain_id"]
+            isOneToOne: false
+            referencedRelation: "captain_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       captains: {
         Row: {
           branch_id: string
@@ -201,6 +360,89 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_conversations: {
+        Row: {
+          booking_id: string
+          captain_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          trainee_id: string
+        }
+        Insert: {
+          booking_id: string
+          captain_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          trainee_id: string
+        }
+        Update: {
+          booking_id?: string
+          captain_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          trainee_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_conversations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "captain_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_conversations_captain_id_fkey"
+            columns: ["captain_id"]
+            isOneToOne: false
+            referencedRelation: "captain_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_read: boolean
+          message_type: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_read?: boolean
+          message_type?: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_read?: boolean
+          message_type?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -378,6 +620,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          related_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          related_id?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          related_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       order_items: {
         Row: {
