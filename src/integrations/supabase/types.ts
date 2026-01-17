@@ -540,7 +540,10 @@ export type Database = {
       profiles: {
         Row: {
           approval_status: string | null
+          car_license_url: string | null
+          car_photo_url: string | null
           created_at: string
+          driving_license_url: string | null
           full_name: string | null
           id: string
           id_card_url: string | null
@@ -553,7 +556,10 @@ export type Database = {
         }
         Insert: {
           approval_status?: string | null
+          car_license_url?: string | null
+          car_photo_url?: string | null
           created_at?: string
+          driving_license_url?: string | null
           full_name?: string | null
           id: string
           id_card_url?: string | null
@@ -566,7 +572,10 @@ export type Database = {
         }
         Update: {
           approval_status?: string | null
+          car_license_url?: string | null
+          car_photo_url?: string | null
           created_at?: string
+          driving_license_url?: string | null
           full_name?: string | null
           id?: string
           id_card_url?: string | null

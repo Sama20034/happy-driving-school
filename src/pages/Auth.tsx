@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Eye, EyeOff, Mail, Lock, User, Car, GraduationCap, Upload, CreditCard, UserCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Car, GraduationCap, Upload, CreditCard, UserCircle, FileText, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,8 @@ import Footer from "@/components/layout/Footer";
 import { supabase } from "@/integrations/supabase/client";
 
 type UserRole = 'trainee' | 'captain';
+
+type DocumentType = 'id_card' | 'personal_photo' | 'car_license' | 'driving_license' | 'car_photo';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -27,11 +29,19 @@ const Auth = () => {
     fullName: "",
   });
 
-  // Document uploads
+  // Document uploads - Common
   const [idCardFile, setIdCardFile] = useState<File | null>(null);
   const [personalPhotoFile, setPersonalPhotoFile] = useState<File | null>(null);
   const [idCardPreview, setIdCardPreview] = useState<string | null>(null);
   const [personalPhotoPreview, setPersonalPhotoPreview] = useState<string | null>(null);
+
+  // Document uploads - Captain only
+  const [carLicenseFile, setCarLicenseFile] = useState<File | null>(null);
+  const [drivingLicenseFile, setDrivingLicenseFile] = useState<File | null>(null);
+  const [carPhotoFile, setCarPhotoFile] = useState<File | null>(null);
+  const [carLicensePreview, setCarLicensePreview] = useState<string | null>(null);
+  const [drivingLicensePreview, setDrivingLicensePreview] = useState<string | null>(null);
+  const [carPhotoPreview, setCarPhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (user && !loading) {
@@ -39,16 +49,32 @@ const Auth = () => {
     }
   }, [user, loading, navigate]);
 
-  const handleFileChange = (file: File | null, type: 'id_card' | 'personal_photo') => {
+  const handleFileChange = (file: File | null, type: DocumentType) => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        if (type === 'id_card') {
-          setIdCardFile(file);
-          setIdCardPreview(reader.result as string);
-        } else {
-          setPersonalPhotoFile(file);
-          setPersonalPhotoPreview(reader.result as string);
+        const preview = reader.result as string;
+        switch (type) {
+          case 'id_card':
+            setIdCardFile(file);
+            setIdCardPreview(preview);
+            break;
+          case 'personal_photo':
+            setPersonalPhotoFile(file);
+            setPersonalPhotoPreview(preview);
+            break;
+          case 'car_license':
+            setCarLicenseFile(file);
+            setCarLicensePreview(preview);
+            break;
+          case 'driving_license':
+            setDrivingLicenseFile(file);
+            setDrivingLicensePreview(preview);
+            break;
+          case 'car_photo':
+            setCarPhotoFile(file);
+            setCarPhotoPreview(preview);
+            break;
         }
       };
       reader.readAsDataURL(file);
@@ -73,6 +99,19 @@ const Auth = () => {
       .getPublicUrl(fileName);
 
     return publicUrl;
+  };
+
+  const resetForm = () => {
+    setIdCardFile(null);
+    setPersonalPhotoFile(null);
+    setIdCardPreview(null);
+    setPersonalPhotoPreview(null);
+    setCarLicenseFile(null);
+    setDrivingLicenseFile(null);
+    setCarPhotoFile(null);
+    setCarLicensePreview(null);
+    setDrivingLicensePreview(null);
+    setCarPhotoPreview(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,6 +139,13 @@ const Auth = () => {
           return;
         }
 
+        // Validate captain-specific documents
+        if (selectedRole === 'captain' && (!carLicenseFile || !drivingLicenseFile || !carPhotoFile)) {
+          toast.error("يرجى رفع جميع مستندات الكابتن المطلوبة");
+          setIsSubmitting(false);
+          return;
+        }
+
         const { error, data } = await signUp(formData.email, formData.password, formData.fullName, selectedRole);
         if (error) {
           if (error.message.includes("already registered")) {
@@ -108,22 +154,40 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else if (data?.user) {
-          // Upload documents
-          const [idCardUrl, personalPhotoUrl] = await Promise.all([
+          // Upload common documents
+          const uploadPromises: Promise<string | null>[] = [
             uploadDocument(idCardFile, data.user.id, 'id_card'),
             uploadDocument(personalPhotoFile, data.user.id, 'personal_photo')
-          ]);
+          ];
+
+          // Add captain documents if applicable
+          if (selectedRole === 'captain' && carLicenseFile && drivingLicenseFile && carPhotoFile) {
+            uploadPromises.push(
+              uploadDocument(carLicenseFile, data.user.id, 'car_license'),
+              uploadDocument(drivingLicenseFile, data.user.id, 'driving_license'),
+              uploadDocument(carPhotoFile, data.user.id, 'car_photo')
+            );
+          }
+
+          const uploadedUrls = await Promise.all(uploadPromises);
+          const [idCardUrl, personalPhotoUrl, carLicenseUrl, drivingLicenseUrl, carPhotoUrl] = uploadedUrls;
 
           // Update profile with document URLs
-          if (idCardUrl && personalPhotoUrl) {
-            await supabase
-              .from('profiles')
-              .update({
-                id_card_url: idCardUrl,
-                personal_photo_url: personalPhotoUrl
-              })
-              .eq('user_id', data.user.id);
+          const updateData: Record<string, string | null> = {
+            id_card_url: idCardUrl,
+            personal_photo_url: personalPhotoUrl
+          };
+
+          if (selectedRole === 'captain') {
+            updateData.car_license_url = carLicenseUrl || null;
+            updateData.driving_license_url = drivingLicenseUrl || null;
+            updateData.car_photo_url = carPhotoUrl || null;
           }
+
+          await supabase
+            .from('profiles')
+            .update(updateData)
+            .eq('user_id', data.user.id);
 
           toast.success("تم إنشاء الحساب بنجاح! في انتظار موافقة الإدارة");
           navigate("/pending-approval");
@@ -142,6 +206,49 @@ const Auth = () => {
     );
   }
 
+  const DocumentUploadField = ({ 
+    id, 
+    label, 
+    icon: Icon, 
+    preview, 
+    type 
+  }: { 
+    id: string; 
+    label: string; 
+    icon: React.ElementType; 
+    preview: string | null; 
+    type: DocumentType;
+  }) => (
+    <div className="space-y-2">
+      <Label className="flex items-center gap-2 text-sm">
+        <Icon className="h-4 w-4" />
+        {label}
+      </Label>
+      <div 
+        className={`relative border-2 border-dashed rounded-xl p-3 text-center cursor-pointer transition-all hover:border-primary/50 ${
+          preview ? 'border-primary bg-primary/5' : 'border-border'
+        }`}
+        onClick={() => document.getElementById(id)?.click()}
+      >
+        <input
+          id={id}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => handleFileChange(e.target.files?.[0] || null, type)}
+        />
+        {preview ? (
+          <img src={preview} alt={label} className="max-h-24 mx-auto rounded-lg" />
+        ) : (
+          <div className="py-3">
+            <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
+            <p className="text-xs text-muted-foreground">اضغط للرفع</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <>
       <Helmet>
@@ -150,7 +257,7 @@ const Auth = () => {
 
       <Header />
       <main className="min-h-screen bg-background pt-24 pb-12 flex items-center justify-center">
-        <div className="w-full max-w-md mx-4">
+        <div className="w-full max-w-lg mx-4">
           <div className="bg-card border border-border rounded-3xl p-8 shadow-xl">
             <div className="text-center mb-8">
               <h1 className="text-2xl font-bold mb-2">
@@ -161,7 +268,7 @@ const Auth = () => {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {/* Role Selection - Only show on signup */}
               {!isLogin && (
                 <div className="space-y-3">
@@ -170,48 +277,42 @@ const Auth = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedRole('trainee')}
-                      className={`flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all duration-300 ${
+                      className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-300 ${
                         selectedRole === 'trainee'
                           ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
                           : 'border-border hover:border-primary/50 hover:bg-secondary/50'
                       }`}
                     >
-                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all ${
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
                         selectedRole === 'trainee' 
                           ? 'bg-primary text-primary-foreground' 
                           : 'bg-secondary text-muted-foreground'
                       }`}>
-                        <GraduationCap size={28} />
+                        <GraduationCap size={24} />
                       </div>
-                      <span className={`font-semibold ${selectedRole === 'trainee' ? 'text-primary' : ''}`}>
+                      <span className={`font-semibold text-sm ${selectedRole === 'trainee' ? 'text-primary' : ''}`}>
                         متدرب
-                      </span>
-                      <span className="text-xs text-muted-foreground text-center">
-                        عايز أتعلم السواقة
                       </span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setSelectedRole('captain')}
-                      className={`flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all duration-300 ${
+                      className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-300 ${
                         selectedRole === 'captain'
                           ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
                           : 'border-border hover:border-primary/50 hover:bg-secondary/50'
                       }`}
                     >
-                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all ${
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
                         selectedRole === 'captain' 
                           ? 'bg-primary text-primary-foreground' 
                           : 'bg-secondary text-muted-foreground'
                       }`}>
-                        <Car size={28} />
+                        <Car size={24} />
                       </div>
-                      <span className={`font-semibold ${selectedRole === 'captain' ? 'text-primary' : ''}`}>
+                      <span className={`font-semibold text-sm ${selectedRole === 'captain' ? 'text-primary' : ''}`}>
                         كابتن
-                      </span>
-                      <span className="text-xs text-muted-foreground text-center">
-                        عايز أدرب سواقة
                       </span>
                     </button>
                   </div>
@@ -281,65 +382,53 @@ const Auth = () => {
                 <div className="space-y-4">
                   <Label className="text-base font-semibold">المستندات المطلوبة *</Label>
                   
-                  {/* ID Card Upload */}
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2 text-sm">
-                      <CreditCard className="h-4 w-4" />
-                      صورة البطاقة الشخصية
-                    </Label>
-                    <div 
-                      className={`relative border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-primary/50 ${
-                        idCardPreview ? 'border-primary bg-primary/5' : 'border-border'
-                      }`}
-                      onClick={() => document.getElementById('idCardInput')?.click()}
-                    >
-                      <input
-                        id="idCardInput"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleFileChange(e.target.files?.[0] || null, 'id_card')}
-                      />
-                      {idCardPreview ? (
-                        <img src={idCardPreview} alt="ID Card" className="max-h-32 mx-auto rounded-lg" />
-                      ) : (
-                        <div className="py-4">
-                          <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground">اضغط لرفع صورة البطاقة</p>
-                        </div>
-                      )}
-                    </div>
+                  {/* Common Documents */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <DocumentUploadField
+                      id="idCardInput"
+                      label="صورة البطاقة"
+                      icon={CreditCard}
+                      preview={idCardPreview}
+                      type="id_card"
+                    />
+                    <DocumentUploadField
+                      id="personalPhotoInput"
+                      label="صورة شخصية"
+                      icon={UserCircle}
+                      preview={personalPhotoPreview}
+                      type="personal_photo"
+                    />
                   </div>
 
-                  {/* Personal Photo Upload */}
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2 text-sm">
-                      <UserCircle className="h-4 w-4" />
-                      صورة شخصية
-                    </Label>
-                    <div 
-                      className={`relative border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all hover:border-primary/50 ${
-                        personalPhotoPreview ? 'border-primary bg-primary/5' : 'border-border'
-                      }`}
-                      onClick={() => document.getElementById('personalPhotoInput')?.click()}
-                    >
-                      <input
-                        id="personalPhotoInput"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleFileChange(e.target.files?.[0] || null, 'personal_photo')}
-                      />
-                      {personalPhotoPreview ? (
-                        <img src={personalPhotoPreview} alt="Personal Photo" className="max-h-32 mx-auto rounded-lg" />
-                      ) : (
-                        <div className="py-4">
-                          <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground">اضغط لرفع صورتك الشخصية</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  {/* Captain-specific Documents */}
+                  {selectedRole === 'captain' && (
+                    <>
+                      <Label className="text-sm text-primary font-medium">مستندات الكابتن الإضافية *</Label>
+                      <div className="grid grid-cols-3 gap-3">
+                        <DocumentUploadField
+                          id="carLicenseInput"
+                          label="رخصة السيارة"
+                          icon={FileText}
+                          preview={carLicensePreview}
+                          type="car_license"
+                        />
+                        <DocumentUploadField
+                          id="drivingLicenseInput"
+                          label="الرخصة الشخصية"
+                          icon={FileText}
+                          preview={drivingLicensePreview}
+                          type="driving_license"
+                        />
+                        <DocumentUploadField
+                          id="carPhotoInput"
+                          label="صورة العربية"
+                          icon={Camera}
+                          preview={carPhotoPreview}
+                          type="car_photo"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -357,10 +446,7 @@ const Auth = () => {
                 type="button"
                 onClick={() => {
                   setIsLogin(!isLogin);
-                  setIdCardFile(null);
-                  setPersonalPhotoFile(null);
-                  setIdCardPreview(null);
-                  setPersonalPhotoPreview(null);
+                  resetForm();
                 }}
                 className="text-primary hover:underline"
               >
