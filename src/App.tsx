@@ -36,6 +36,7 @@ import StoreProducts from "./pages/admin/StoreProducts";
 import StoreOrders from "./pages/admin/StoreOrders";
 import DiscountCodes from "./pages/admin/DiscountCodes";
 import UserApprovals from "./pages/admin/UserApprovals";
+import BookingDeposits from "./pages/admin/BookingDeposits";
 import SocialSidebar from "./components/layout/SocialSidebar";
 import InstallPrompt from "./components/pwa/InstallPrompt";
 import ScrollToTop from "./components/ScrollToTop";
@@ -74,6 +75,7 @@ const App = () => (
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="bookings" element={<Bookings />} />
+              <Route path="booking-deposits" element={<BookingDeposits />} />
               <Route path="discount-codes" element={<DiscountCodes />} />
               <Route path="countries" element={<Countries />} />
               <Route path="governorates" element={<Governorates />} />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -12,10 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { Clock, Calendar as CalendarIcon } from "lucide-react";
+import { Clock, Calendar as CalendarIcon, Upload, CreditCard, Smartphone, Check, Loader2 } from "lucide-react";
 
 interface Captain {
   id: string;
@@ -50,11 +51,25 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
   });
   const [loading, setLoading] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<Record<string, string[]>>({});
+  
+  // Deposit/Payment states
+  const [step, setStep] = useState<"booking" | "payment">("booking");
+  const [paymentMethod, setPaymentMethod] = useState<"instapay" | "vodafone_cash">("instapay");
+  const [depositImage, setDepositImage] = useState<File | null>(null);
+  const [depositImagePreview, setDepositImagePreview] = useState<string | null>(null);
+  const [uploadingDeposit, setUploadingDeposit] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const depositAmount = Math.round(captain.hourly_rate * 0.5); // 50% deposit
 
   useEffect(() => {
     if (open) {
       fetchSchedules();
       fetchBookedSlots();
+      // Reset states when modal opens
+      setStep("booking");
+      setDepositImage(null);
+      setDepositImagePreview(null);
     }
   }, [open, captain.id]);
 
@@ -130,20 +145,60 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
     return schedules.some((s) => s.day_of_week === dayOfWeek && s.is_active);
   };
 
+  const handleDepositImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("يرجى اختيار صورة");
+        return;
+      }
+      setDepositImage(file);
+      setDepositImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const proceedToPayment = () => {
+    if (!selectedDate || !selectedTime) {
+      toast.error("يرجى اختيار التاريخ والوقت");
+      return;
+    }
+    if (!formData.trainee_name || !formData.trainee_phone) {
+      toast.error("يرجى إدخال الاسم ورقم الهاتف");
+      return;
+    }
+    setStep("payment");
+  };
+
   const handleSubmit = async () => {
     if (!user || !selectedDate || !selectedTime) {
       toast.error("يرجى اختيار التاريخ والوقت");
       return;
     }
 
-    if (!formData.trainee_name || !formData.trainee_phone) {
-      toast.error("يرجى إدخال الاسم ورقم الهاتف");
+    if (!depositImage) {
+      toast.error("يرجى رفع صورة إيصال التحويل");
       return;
     }
 
     setLoading(true);
+    setUploadingDeposit(true);
+
     try {
-      // Create booking
+      // Upload deposit image
+      const fileExt = depositImage.name.split(".").pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from("deposit-images")
+        .upload(fileName, depositImage);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("deposit-images")
+        .getPublicUrl(fileName);
+
+      // Create booking with deposit info
       const { data: booking, error: bookingError } = await supabase
         .from("captain_bookings")
         .insert({
@@ -156,6 +211,10 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
           trainee_name: formData.trainee_name,
           trainee_phone: formData.trainee_phone,
           notes: formData.notes,
+          deposit_amount: depositAmount,
+          deposit_image_url: urlData.publicUrl,
+          payment_method: paymentMethod,
+          payment_status: "paid",
         })
         .select()
         .single();
@@ -165,19 +224,20 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
       // Create notification for captain
       await supabase.from("notifications").insert({
         user_id: captain.user_id,
-        title: "طلب حجز جديد",
-        message: `${formData.trainee_name} يريد الحجز معك يوم ${format(selectedDate, "EEEE، d MMMM", { locale: ar })} الساعة ${selectedTime}`,
+        title: "طلب حجز جديد مع ديبوزت",
+        message: `${formData.trainee_name} حجز معك يوم ${format(selectedDate, "EEEE، d MMMM", { locale: ar })} الساعة ${selectedTime} ودفع ديبوزت ${depositAmount} جنيه`,
         type: "booking",
         related_id: booking.id,
       });
 
-      toast.success("تم إرسال طلب الحجز بنجاح");
+      toast.success("تم إرسال طلب الحجز بنجاح مع صورة الديبوزت");
       onClose();
     } catch (error) {
       console.error("Error creating booking:", error);
       toast.error("حدث خطأ أثناء إرسال طلب الحجز");
     } finally {
       setLoading(false);
+      setUploadingDeposit(false);
     }
   };
 
@@ -185,97 +245,236 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
-          <DialogTitle>حجز موعد مع {captain.full_name}</DialogTitle>
+          <DialogTitle>
+            {step === "booking" ? `حجز موعد مع ${captain.full_name}` : "دفع الديبوزت"}
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <CalendarIcon className="h-4 w-4" />
-              اختر التاريخ
-            </Label>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              disabled={(date) => !isDateAvailable(date)}
-              className="rounded-md border mx-auto"
-            />
-          </div>
-
-          {selectedDate && availableTimes.length > 0 && (
+        {step === "booking" ? (
+          <div className="space-y-6 py-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                اختر الوقت
+                <CalendarIcon className="h-4 w-4" />
+                اختر التاريخ
               </Label>
-              <div className="grid grid-cols-4 gap-2">
-                {availableTimes.map((time) => (
-                  <Button
-                    key={time}
-                    variant={selectedTime === time ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedTime(time)}
-                  >
-                    {time}
-                  </Button>
-                ))}
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                disabled={(date) => !isDateAvailable(date)}
+                className="rounded-md border mx-auto"
+              />
+            </div>
+
+            {selectedDate && availableTimes.length > 0 && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  اختر الوقت
+                </Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {availableTimes.map((time) => (
+                    <Button
+                      key={time}
+                      variant={selectedTime === time ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedTime(time)}
+                    >
+                      {time}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedDate && availableTimes.length === 0 && (
+              <p className="text-center text-muted-foreground">
+                لا توجد مواعيد متاحة في هذا اليوم
+              </p>
+            )}
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>اسمك الكامل</Label>
+                <Input
+                  value={formData.trainee_name}
+                  onChange={(e) => setFormData({ ...formData, trainee_name: e.target.value })}
+                  placeholder="أدخل اسمك"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>رقم الهاتف</Label>
+                <Input
+                  value={formData.trainee_phone}
+                  onChange={(e) => setFormData({ ...formData, trainee_phone: e.target.value })}
+                  placeholder="أدخل رقم هاتفك"
+                  dir="ltr"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>ملاحظات (اختياري)</Label>
+                <Textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="أي ملاحظات تريد إضافتها..."
+                  rows={3}
+                />
               </div>
             </div>
-          )}
 
-          {selectedDate && availableTimes.length === 0 && (
-            <p className="text-center text-muted-foreground">
-              لا توجد مواعيد متاحة في هذا اليوم
-            </p>
-          )}
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>اسمك الكامل</Label>
-              <Input
-                value={formData.trainee_name}
-                onChange={(e) => setFormData({ ...formData, trainee_name: e.target.value })}
-                placeholder="أدخل اسمك"
-              />
+            <div className="bg-muted p-4 rounded-lg space-y-2">
+              <div className="flex justify-between items-center">
+                <span>السعر الإجمالي:</span>
+                <span className="font-bold text-lg">{captain.hourly_rate} جنيه</span>
+              </div>
+              <div className="flex justify-between items-center text-primary">
+                <span>الديبوزت المطلوب (50%):</span>
+                <span className="font-bold text-lg">{depositAmount} جنيه</span>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>رقم الهاتف</Label>
-              <Input
-                value={formData.trainee_phone}
-                onChange={(e) => setFormData({ ...formData, trainee_phone: e.target.value })}
-                placeholder="أدخل رقم هاتفك"
-                dir="ltr"
-              />
+            <Button
+              className="w-full"
+              onClick={proceedToPayment}
+              disabled={!selectedDate || !selectedTime}
+            >
+              متابعة للدفع
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-6 py-4">
+            {/* Payment Instructions */}
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 space-y-3">
+              <h3 className="font-semibold text-primary flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                تعليمات الدفع
+              </h3>
+              <p className="text-sm">
+                قم بتحويل مبلغ <span className="font-bold text-primary">{depositAmount} جنيه</span> كديبوزت باستخدام إحدى الطرق التالية:
+              </p>
             </div>
 
-            <div className="space-y-2">
-              <Label>ملاحظات (اختياري)</Label>
-              <Textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="أي ملاحظات تريد إضافتها..."
-                rows={3}
+            {/* Payment Method Selection */}
+            <div className="space-y-3">
+              <Label>اختر طريقة الدفع</Label>
+              <RadioGroup
+                value={paymentMethod}
+                onValueChange={(value) => setPaymentMethod(value as "instapay" | "vodafone_cash")}
+                className="grid grid-cols-2 gap-4"
+              >
+                <div className="flex items-center space-x-2 space-x-reverse">
+                  <RadioGroupItem value="instapay" id="instapay" />
+                  <Label htmlFor="instapay" className="flex items-center gap-2 cursor-pointer">
+                    <CreditCard className="h-4 w-4" />
+                    انستا باي
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2 space-x-reverse">
+                  <RadioGroupItem value="vodafone_cash" id="vodafone_cash" />
+                  <Label htmlFor="vodafone_cash" className="flex items-center gap-2 cursor-pointer">
+                    <Smartphone className="h-4 w-4" />
+                    فودافون كاش
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Payment Details */}
+            <div className="bg-muted p-4 rounded-lg space-y-2">
+              {paymentMethod === "instapay" ? (
+                <>
+                  <p className="font-semibold">بيانات انستا باي:</p>
+                  <p className="text-sm">الاسم: Happy Driving School</p>
+                  <p className="text-sm" dir="ltr">IPA: happydriving@instapay</p>
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold">بيانات فودافون كاش:</p>
+                  <p className="text-sm" dir="ltr">رقم المحفظة: 01012345678</p>
+                </>
+              )}
+            </div>
+
+            {/* Upload Deposit Image */}
+            <div className="space-y-3">
+              <Label>رفع صورة إيصال التحويل</Label>
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleDepositImageChange}
+                className="hidden"
               />
+              
+              {depositImagePreview ? (
+                <div className="relative">
+                  <img
+                    src={depositImagePreview}
+                    alt="Deposit receipt"
+                    className="w-full h-48 object-cover rounded-lg border"
+                  />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="absolute bottom-2 right-2"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    تغيير الصورة
+                  </Button>
+                  <div className="absolute top-2 right-2 bg-green-500 text-white p-1 rounded-full">
+                    <Check className="h-4 w-4" />
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                >
+                  <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">اضغط لرفع صورة الإيصال</p>
+                </div>
+              )}
+            </div>
+
+            {/* Summary */}
+            <div className="bg-muted p-4 rounded-lg space-y-2">
+              <div className="flex justify-between items-center text-sm">
+                <span>التاريخ:</span>
+                <span>{selectedDate && format(selectedDate, "EEEE، d MMMM yyyy", { locale: ar })}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span>الوقت:</span>
+                <span>{selectedTime}</span>
+              </div>
+              <div className="flex justify-between items-center font-semibold text-primary">
+                <span>الديبوزت:</span>
+                <span>{depositAmount} جنيه</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setStep("booking")} className="flex-1">
+                رجوع
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleSubmit}
+                disabled={loading || !depositImage}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                    جاري الإرسال...
+                  </>
+                ) : (
+                  "تأكيد الحجز والدفع"
+                )}
+              </Button>
             </div>
           </div>
-
-          <div className="bg-muted p-4 rounded-lg">
-            <div className="flex justify-between items-center">
-              <span>السعر الإجمالي:</span>
-              <span className="font-bold text-lg">{captain.hourly_rate} جنيه</span>
-            </div>
-          </div>
-
-          <Button
-            className="w-full"
-            onClick={handleSubmit}
-            disabled={loading || !selectedDate || !selectedTime}
-          >
-            {loading ? "جاري الإرسال..." : "تأكيد الحجز"}
-          </Button>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );

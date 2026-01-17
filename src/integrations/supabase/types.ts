@@ -176,9 +176,13 @@ export type Database = {
           booking_time: string
           captain_id: string
           created_at: string
+          deposit_amount: number | null
+          deposit_image_url: string | null
           duration_minutes: number
           id: string
           notes: string | null
+          payment_method: string | null
+          payment_status: string
           status: string
           total_price: number
           trainee_id: string
@@ -191,9 +195,13 @@ export type Database = {
           booking_time: string
           captain_id: string
           created_at?: string
+          deposit_amount?: number | null
+          deposit_image_url?: string | null
           duration_minutes?: number
           id?: string
           notes?: string | null
+          payment_method?: string | null
+          payment_status?: string
           status?: string
           total_price: number
           trainee_id: string
@@ -206,9 +214,13 @@ export type Database = {
           booking_time?: string
           captain_id?: string
           created_at?: string
+          deposit_amount?: number | null
+          deposit_image_url?: string | null
           duration_minutes?: number
           id?: string
           notes?: string | null
+          payment_method?: string | null
+          payment_status?: string
           status?: string
           total_price?: number
           trainee_id?: string
