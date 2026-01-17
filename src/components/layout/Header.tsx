@@ -12,13 +12,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
-import logo from "@/assets/logo.png";
 
 const navLinks = [
   { href: "/", label: "الرئيسية" },
-  { href: "/courses", label: "الكورسات" },
+  { href: "/booking", label: "احجز كابتن" },
   { href: "/store", label: "المتجر" },
-  { href: "/why-us", label: "لماذا نحن" },
 ];
 
 const Header = () => {
@@ -32,33 +30,13 @@ const Header = () => {
     navigate("/");
   };
 
-  const handleNavClick = (href: string) => {
-    setIsMenuOpen(false);
-    
-    // Handle hash links for same-page navigation
-    if (href.startsWith("/#")) {
-      const elementId = href.substring(2);
-      const element = document.getElementById(elementId);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      } else {
-        // Navigate to home first, then scroll
-        navigate("/");
-        setTimeout(() => {
-          const el = document.getElementById(elementId);
-          if (el) el.scrollIntoView({ behavior: "smooth" });
-        }, 100);
-      }
-    }
-  };
-
   return (
-    <header className="fixed top-0 right-0 left-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
+    <header className="fixed top-0 right-0 left-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="كابتن دينا أحمد - Defensive Driving" className="h-14 w-auto" />
+            <span className="text-xl font-bold text-primary">كباتن القيادة</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -100,7 +78,7 @@ const Header = () => {
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-48 bg-card">
                   <DropdownMenuItem asChild>
                     <Link to="/my-bookings" className="flex items-center gap-2 cursor-pointer">
                       <Calendar size={16} />
@@ -136,8 +114,8 @@ const Header = () => {
                 <Link to="/auth">تسجيل الدخول</Link>
               </Button>
             )}
-            <Button className="gradient-primary text-primary-foreground shadow-glow" asChild>
-              <Link to="/booking">احجز الآن</Link>
+            <Button className="gradient-primary text-primary-foreground" asChild>
+              <Link to="/auth">سجّل الآن</Link>
             </Button>
           </div>
 
@@ -162,7 +140,7 @@ const Header = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border/50">
+          <div className="md:hidden py-4 border-t border-border bg-background">
             <nav className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <Link
@@ -196,7 +174,7 @@ const Header = () => {
                   )}
                 </>
               )}
-              <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
+              <div className="flex flex-col gap-2 pt-4 border-t border-border">
                 {user ? (
                   <Button
                     variant="outline"
@@ -217,8 +195,8 @@ const Header = () => {
                   </Button>
                 )}
                 <Button className="gradient-primary text-primary-foreground" asChild>
-                  <Link to="/booking" onClick={() => setIsMenuOpen(false)}>
-                    احجز الآن
+                  <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+                    سجّل الآن
                   </Link>
                 </Button>
               </div>
