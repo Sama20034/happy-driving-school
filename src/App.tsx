@@ -40,7 +40,7 @@ import UserApprovals from "./pages/admin/UserApprovals";
 import BookingDeposits from "./pages/admin/BookingDeposits";
 import AdminChats from "./pages/admin/AdminChats";
 import SocialSidebar from "./components/layout/SocialSidebar";
-import InstallPrompt from "./components/pwa/InstallPrompt";
+
 import ScrollToTop from "./components/ScrollToTop";
 const queryClient = new QueryClient();
 
@@ -53,7 +53,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <SocialSidebar />
-          <InstallPrompt />
+          
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/booking" element={<Booking />} />
