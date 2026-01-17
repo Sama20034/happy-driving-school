@@ -32,11 +32,14 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
+    <header className="fixed top-0 right-0 left-0 z-50 bg-card/95 backdrop-blur-md border-b border-border shadow-sm">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-18 py-3">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-lg">ك</span>
+            </div>
             <span className="text-xl font-bold text-primary">كباتن القيادة</span>
           </Link>
 
@@ -115,7 +118,7 @@ const Header = () => {
                 <Link to="/auth">تسجيل الدخول</Link>
               </Button>
             )}
-            <Button className="gradient-primary text-primary-foreground" asChild>
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6" asChild>
               <Link to="/auth">سجّل الآن</Link>
             </Button>
           </div>
@@ -195,7 +198,7 @@ const Header = () => {
                     </Link>
                   </Button>
                 )}
-                <Button className="gradient-primary text-primary-foreground" asChild>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full" asChild>
                   <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
                     سجّل الآن
                   </Link>
