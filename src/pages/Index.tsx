@@ -3,30 +3,30 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/layout/WhatsAppButton";
 import HeroSection from "@/components/home/HeroSection";
-import StatsSection from "@/components/home/StatsSection";
-import AboutSection from "@/components/home/AboutSection";
 import WhyUsSection from "@/components/home/WhyUsSection";
-import CoursesSection from "@/components/home/CoursesSection";
+import HowItWorksSection from "@/components/home/HowItWorksSection";
+import PaymentMethodsSection from "@/components/home/PaymentMethodsSection";
+import StatsSection from "@/components/home/StatsSection";
 import CTASection from "@/components/home/CTASection";
 
 const Index = () => {
   return (
     <>
       <Helmet>
-        <title>دينا أحمد - Defensive Driving | أكاديمية تعليم السواقة</title>
+        <title>كباتن القيادة | تدريب قيادة آمن مع كباتن موثوقين</title>
         <meta
           name="description"
-          content="أكاديمية دينا أحمد لتعليم السواقة - كباتن محترفين، سيارات حديثة، تدريب عملي مكثف. احجز كورسك الآن!"
+          content="احجز كابتن تدريب قيادة موثوق بالقرب منك. شوف تقييم الكابتن ونوع عربيته واحجز بأمان مع دفع ديبوزيت."
         />
       </Helmet>
 
       <Header />
       <main>
         <HeroSection />
-        <StatsSection />
-        <AboutSection />
         <WhyUsSection />
-        <CoursesSection />
+        <HowItWorksSection />
+        <PaymentMethodsSection />
+        <StatsSection />
         <CTASection />
       </main>
       <Footer />
