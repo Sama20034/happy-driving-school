@@ -4,6 +4,7 @@ import { Check, X, Clock, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   Table,
@@ -28,6 +29,21 @@ interface Booking {
   captains: { name: string } | null;
 }
 
+interface CaptainBooking {
+  id: string;
+  captain_id: string;
+  trainee_id: string;
+  trainee_name: string;
+  trainee_phone: string | null;
+  booking_date: string;
+  booking_time: string;
+  status: string;
+  payment_status: string;
+  total_price: number;
+  created_at: string;
+  captain_profiles: { full_name: string } | null;
+}
+
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-500/20 text-yellow-600",
   confirmed: "bg-green-500/20 text-green-600",
@@ -44,30 +60,52 @@ const statusLabels: Record<string, string> = {
 
 const Bookings = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [captainBookings, setCaptainBookings] = useState<CaptainBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchBookings = async () => {
-    const { data, error } = await supabase
-      .from("bookings")
-      .select(`
-        *,
-        governorates(name),
-        branches(name),
-        courses(title),
-        captains(name)
-      `)
-      .order("created_at", { ascending: false });
+  const fetchAll = async () => {
+    setLoading(true);
 
-    if (error) {
-      toast.error("خطأ في تحميل الحجوزات");
+    const [courseRes, captainRes] = await Promise.all([
+      supabase
+        .from("bookings")
+        .select(
+          `
+          *,
+          governorates(name),
+          branches(name),
+          courses(title),
+          captains(name)
+        `
+        )
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("captain_bookings")
+        .select(`*, captain_profiles(full_name)`)
+        .order("created_at", { ascending: false }),
+    ]);
+
+    if (courseRes.error) {
+      console.error(courseRes.error);
+      toast.error("خطأ في تحميل حجوزات الكورسات");
+      setBookings([]);
     } else {
-      setBookings(data || []);
+      setBookings(courseRes.data || []);
     }
+
+    if (captainRes.error) {
+      console.error(captainRes.error);
+      toast.error("خطأ في تحميل حجوزات الكباتن");
+      setCaptainBookings([]);
+    } else {
+      setCaptainBookings((captainRes.data as any) || []);
+    }
+
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchBookings();
+    fetchAll();
   }, []);
 
   const updateStatus = async (id: string, status: string) => {
@@ -80,7 +118,7 @@ const Bookings = () => {
       toast.error("خطأ في تحديث الحالة");
     } else {
       toast.success("تم تحديث الحالة");
-      fetchBookings();
+      fetchAll();
     }
   };
 
@@ -96,7 +134,7 @@ const Bookings = () => {
       toast.error("خطأ في حذف الحجز");
     } else {
       toast.success("تم حذف الحجز");
-      fetchBookings();
+      fetchAll();
     }
   };
 
@@ -115,86 +153,136 @@ const Bookings = () => {
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
           {loading ? (
             <div className="p-8 text-center">جاري التحميل...</div>
-          ) : bookings.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              لا توجد حجوزات
-            </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">العميل</TableHead>
-                  <TableHead className="text-right">الهاتف</TableHead>
-                  <TableHead className="text-right">الفرع</TableHead>
-                  <TableHead className="text-right">الكورس</TableHead>
-                  <TableHead className="text-right">الكابتن</TableHead>
-                  <TableHead className="text-right">التاريخ</TableHead>
-                  <TableHead className="text-right">الوقت</TableHead>
-                  <TableHead className="text-right">الحالة</TableHead>
-                  <TableHead className="text-right">إجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {bookings.map((booking) => (
-                  <TableRow key={booking.id}>
-                    <TableCell className="font-medium">{booking.customer_name}</TableCell>
-                    <TableCell dir="ltr" className="text-right">{booking.customer_phone}</TableCell>
-                    <TableCell>{booking.branches?.name}</TableCell>
-                    <TableCell>{booking.courses?.title}</TableCell>
-                    <TableCell>{booking.captains?.name}</TableCell>
-                    <TableCell>{booking.booking_date}</TableCell>
-                    <TableCell>{booking.booking_time}</TableCell>
-                    <TableCell>
-                      <Badge className={statusColors[booking.status]}>
-                        {statusLabels[booking.status]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        {booking.status === "pending" && (
-                          <>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 text-green-500"
-                              onClick={() => updateStatus(booking.id, "confirmed")}
-                            >
-                              <Check size={16} />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 text-red-500"
-                              onClick={() => updateStatus(booking.id, "cancelled")}
-                            >
-                              <X size={16} />
-                            </Button>
-                          </>
-                        )}
-                        {booking.status === "confirmed" && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 text-blue-500"
-                            onClick={() => updateStatus(booking.id, "completed")}
-                          >
-                            <Clock size={16} />
-                          </Button>
-                        )}
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-destructive"
-                          onClick={() => deleteBooking(booking.id)}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <Tabs defaultValue="captain" className="p-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="captain">حجوزات الكباتن</TabsTrigger>
+                <TabsTrigger value="courses">حجوزات الكورسات</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="captain" className="pt-4">
+                {captainBookings.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    لا توجد حجوزات كباتن
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">المتدرب</TableHead>
+                        <TableHead className="text-right">الهاتف</TableHead>
+                        <TableHead className="text-right">الكابتن</TableHead>
+                        <TableHead className="text-right">التاريخ</TableHead>
+                        <TableHead className="text-right">الوقت</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">حالة الدفع</TableHead>
+                        <TableHead className="text-right">الإجمالي</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {captainBookings.map((b) => (
+                        <TableRow key={b.id}>
+                          <TableCell className="font-medium">{b.trainee_name}</TableCell>
+                          <TableCell dir="ltr" className="text-right">{b.trainee_phone || "-"}</TableCell>
+                          <TableCell>{b.captain_profiles?.full_name || "-"}</TableCell>
+                          <TableCell>{b.booking_date}</TableCell>
+                          <TableCell>{b.booking_time}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{b.status}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{b.payment_status}</Badge>
+                          </TableCell>
+                          <TableCell>{Number(b.total_price || 0).toFixed(0)} جنيه</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </TabsContent>
+
+              <TabsContent value="courses" className="pt-4">
+                {bookings.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">لا توجد حجوزات كورسات</div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">العميل</TableHead>
+                        <TableHead className="text-right">الهاتف</TableHead>
+                        <TableHead className="text-right">الفرع</TableHead>
+                        <TableHead className="text-right">الكورس</TableHead>
+                        <TableHead className="text-right">الكابتن</TableHead>
+                        <TableHead className="text-right">التاريخ</TableHead>
+                        <TableHead className="text-right">الوقت</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">إجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {bookings.map((booking) => (
+                        <TableRow key={booking.id}>
+                          <TableCell className="font-medium">{booking.customer_name}</TableCell>
+                          <TableCell dir="ltr" className="text-right">{booking.customer_phone}</TableCell>
+                          <TableCell>{booking.branches?.name}</TableCell>
+                          <TableCell>{booking.courses?.title}</TableCell>
+                          <TableCell>{booking.captains?.name}</TableCell>
+                          <TableCell>{booking.booking_date}</TableCell>
+                          <TableCell>{booking.booking_time}</TableCell>
+                          <TableCell>
+                            <Badge className={statusColors[booking.status]}>
+                              {statusLabels[booking.status]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              {booking.status === "pending" && (
+                                <>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 text-green-500"
+                                    onClick={() => updateStatus(booking.id, "confirmed")}
+                                  >
+                                    <Check size={16} />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 text-red-500"
+                                    onClick={() => updateStatus(booking.id, "cancelled")}
+                                  >
+                                    <X size={16} />
+                                  </Button>
+                                </>
+                              )}
+                              {booking.status === "confirmed" && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-blue-500"
+                                  onClick={() => updateStatus(booking.id, "completed")}
+                                >
+                                  <Clock size={16} />
+                                </Button>
+                              )}
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-destructive"
+                                onClick={() => deleteBooking(booking.id)}
+                              >
+                                <Trash2 size={16} />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </TabsContent>
+            </Tabs>
           )}
         </div>
       </div>
