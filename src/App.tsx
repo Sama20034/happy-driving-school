@@ -37,6 +37,7 @@ import StoreOrders from "./pages/admin/StoreOrders";
 import DiscountCodes from "./pages/admin/DiscountCodes";
 import UserApprovals from "./pages/admin/UserApprovals";
 import BookingDeposits from "./pages/admin/BookingDeposits";
+import AdminChats from "./pages/admin/AdminChats";
 import SocialSidebar from "./components/layout/SocialSidebar";
 import InstallPrompt from "./components/pwa/InstallPrompt";
 import ScrollToTop from "./components/ScrollToTop";
@@ -87,6 +88,7 @@ const App = () => (
               <Route path="store-products" element={<StoreProducts />} />
               <Route path="store-orders" element={<StoreOrders />} />
               <Route path="user-approvals" element={<UserApprovals />} />
+              <Route path="chats" element={<AdminChats />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />

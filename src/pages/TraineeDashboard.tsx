@@ -11,6 +11,7 @@ import { CaptainCard } from "@/components/trainee/CaptainCard";
 import { TraineeBookings } from "@/components/trainee/TraineeBookings";
 import { ChatList } from "@/components/chat/ChatList";
 import { NotificationsList } from "@/components/notifications/NotificationsList";
+import { AdminSupportButton } from "@/components/chat/AdminSupportButton";
 
 interface Captain {
   id: string;
@@ -104,8 +105,9 @@ const TraineeDashboard = () => {
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <h1 className="text-3xl font-bold">مرحباً بك</h1>
+          <AdminSupportButton />
         </div>
 
         <Tabs defaultValue="captains" className="space-y-6">
