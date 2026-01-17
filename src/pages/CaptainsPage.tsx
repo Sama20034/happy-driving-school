@@ -2,15 +2,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, Car, MapPin, Clock, User, Search, Phone, Image as ImageIcon } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Star, Car, MapPin, Clock, User, Search, Phone, X, ChevronLeft } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Link } from "react-router-dom";
 
 interface Captain {
   id: string;
@@ -61,7 +58,6 @@ const CaptainsPage = () => {
   const fetchCaptains = async () => {
     setLoading(true);
     
-    // First, try to get captains from captain_profiles (for existing captains)
     const { data: captainProfiles } = await supabase
       .from("captain_profiles")
       .select(`
@@ -71,7 +67,6 @@ const CaptainsPage = () => {
       .eq("is_available", true)
       .order("rating", { ascending: false });
 
-    // Also get approved captains from profiles table (new system)
     const { data: approvedProfiles } = await supabase
       .from("profiles")
       .select(`
@@ -88,10 +83,8 @@ const CaptainsPage = () => {
       `)
       .eq("approval_status", "approved");
 
-    // Combine both sources
     const combinedCaptains: Captain[] = [];
     
-    // Add captain_profiles data
     if (captainProfiles) {
       captainProfiles.forEach((captain: any) => {
         combinedCaptains.push({
@@ -101,12 +94,10 @@ const CaptainsPage = () => {
       });
     }
 
-    // Add approved profiles that aren't already in captain_profiles
     if (approvedProfiles) {
       const existingUserIds = combinedCaptains.map(c => c.user_id);
       
       approvedProfiles.forEach((profile: any) => {
-        // Check if this captain is already in the list
         if (!existingUserIds.includes(profile.user_id)) {
           combinedCaptains.push({
             id: profile.id,
@@ -119,14 +110,13 @@ const CaptainsPage = () => {
             transmission_type: profile.transmission_type,
             car_photo_url: profile.car_photo_url,
             personal_photo_url: profile.personal_photo_url,
-            hourly_rate: 100, // Default rate
+            hourly_rate: 100,
             bio: null,
             is_available: true,
             rating: 5.0,
             total_sessions: 0,
           });
         } else {
-          // Update existing captain with profile photos if missing
           const existingIndex = combinedCaptains.findIndex(c => c.user_id === profile.user_id);
           if (existingIndex !== -1) {
             const existing = combinedCaptains[existingIndex];
@@ -167,137 +157,211 @@ const CaptainsPage = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4">كباتن التدريب</h1>
-          <p className="text-muted-foreground text-lg">تعرف على أفضل كباتن تعليم القيادة المعتمدين لدينا</p>
+      {/* Hero Section */}
+      <section className="gradient-navy pt-28 pb-20 relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 right-[10%] w-72 h-72 bg-white/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 left-[20%] w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+          <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: '40px 40px'
+          }} />
         </div>
-
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              placeholder="ابحث عن كابتن..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10"
-            />
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-2xl mx-auto text-center text-primary-foreground">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium mb-6 border border-white/20">
+              <Star className="w-4 h-4 fill-white/50" />
+              <span>كباتن معتمدين وموثقين</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              اختر كابتنك المثالي
+            </h1>
+            <p className="text-lg text-white/70 mb-8">
+              تصفح أفضل كباتن تعليم القيادة، شوف التقييمات ونوع السيارة واحجز بسهولة
+            </p>
+            
+            {/* Search & Filters */}
+            <div className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
+              <div className="relative flex-1">
+                <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  placeholder="ابحث عن كابتن أو نوع سيارة..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pr-12 h-12 bg-white border-0 text-foreground rounded-xl shadow-lg"
+                />
+              </div>
+              <Select value={selectedGovernorate} onValueChange={setSelectedGovernorate}>
+                <SelectTrigger className="w-full sm:w-[180px] h-12 bg-white border-0 rounded-xl shadow-lg">
+                  <SelectValue placeholder="المحافظة" />
+                </SelectTrigger>
+                <SelectContent className="bg-card">
+                  <SelectItem value="all">كل المحافظات</SelectItem>
+                  {governorates.map((gov) => (
+                    <SelectItem key={gov.id} value={gov.id}>
+                      {gov.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <Select value={selectedGovernorate} onValueChange={setSelectedGovernorate}>
-            <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="اختر المحافظة" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">كل المحافظات</SelectItem>
-              {governorates.map((gov) => (
-                <SelectItem key={gov.id} value={gov.id}>
-                  {gov.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        </div>
+        
+        {/* Wave bottom */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
+            <path d="M0 60L60 52C120 44 240 28 360 22C480 16 600 20 720 26C840 32 960 40 1080 42C1200 44 1320 40 1380 38L1440 36V60H1380C1320 60 1200 60 1080 60C960 60 840 60 720 60C600 60 480 60 360 60C240 60 120 60 60 60H0Z" fill="hsl(var(--background))"/>
+          </svg>
+        </div>
+      </section>
+
+      {/* Captains Grid */}
+      <main className="container mx-auto px-4 py-12">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">الكباتن المتاحين</h2>
+            <p className="text-muted-foreground text-sm mt-1">
+              {filteredCaptains.length} كابتن متاح
+            </p>
+          </div>
         </div>
 
-        {/* Captains Grid */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i} className="overflow-hidden">
-                <Skeleton className="h-48 w-full" />
-                <CardContent className="p-4 space-y-3">
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-4 w-2/3" />
-                </CardContent>
-              </Card>
+              <div key={i} className="card-navy p-0 overflow-hidden animate-pulse">
+                <div className="h-48 bg-primary/10" />
+                <div className="p-5 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-primary/10" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-5 bg-primary/10 rounded w-2/3" />
+                      <div className="h-4 bg-primary/10 rounded w-1/2" />
+                    </div>
+                  </div>
+                  <div className="h-4 bg-primary/10 rounded w-full" />
+                  <div className="h-4 bg-primary/10 rounded w-3/4" />
+                </div>
+              </div>
             ))}
           </div>
         ) : filteredCaptains.length === 0 ? (
-          <div className="text-center py-12">
-            <User className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground text-lg">لا يوجد كباتن متاحين حالياً</p>
+          <div className="text-center py-20">
+            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+              <User className="h-10 w-10 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">لا يوجد كباتن متاحين</h3>
+            <p className="text-muted-foreground">جرب تغيير البحث أو المحافظة</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCaptains.map((captain) => (
-              <Card 
+            {filteredCaptains.map((captain, index) => (
+              <div 
                 key={captain.id} 
-                className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                className="card-navy overflow-hidden cursor-pointer group"
                 onClick={() => setSelectedCaptain(captain)}
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {/* Car Photo */}
-                <div className="relative h-48 bg-muted overflow-hidden">
+                <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
                   {captain.car_photo_url ? (
                     <img
                       src={captain.car_photo_url}
                       alt="صورة السيارة"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Car className="h-16 w-16 text-muted-foreground" />
+                      <Car className="h-16 w-16 text-primary/30" />
                     </div>
                   )}
-                  {/* Availability Badge */}
-                  <Badge className="absolute top-3 right-3 bg-green-500">متاح</Badge>
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  
+                  {/* Badges */}
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    <span className="badge-navy-solid text-xs">
+                      متاح
+                    </span>
+                  </div>
+                  
+                  {/* Rating on image */}
+                  <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-lg">
+                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                    <span className="text-white text-sm font-medium">{captain.rating?.toFixed(1) || "5.0"}</span>
+                  </div>
                 </div>
 
-                <CardContent className="p-4">
+                <div className="p-5">
                   {/* Captain Info */}
                   <div className="flex items-center gap-3 mb-4">
-                    <Avatar className="h-14 w-14 border-2 border-primary">
-                      <AvatarImage src={captain.personal_photo_url || undefined} alt={captain.full_name} />
-                      <AvatarFallback>
-                        <User className="h-6 w-6" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-lg">{captain.full_name}</h3>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                        <span className="font-medium">{captain.rating?.toFixed(1) || "5.0"}</span>
-                        <span className="text-muted-foreground">({captain.total_sessions || 0} جلسة)</span>
+                    <div className="relative">
+                      <div className="w-14 h-14 rounded-xl overflow-hidden border-2 border-primary/20 bg-primary/5">
+                        {captain.personal_photo_url ? (
+                          <img
+                            src={captain.personal_photo_url}
+                            alt={captain.full_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <User className="h-6 w-6 text-primary/50" />
+                          </div>
+                        )}
                       </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-lg text-foreground truncate">{captain.full_name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {captain.total_sessions || 0} جلسة تدريبية
+                      </p>
                     </div>
                   </div>
 
                   {/* Details */}
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-2.5 text-sm">
                     {captain.governorate_name && (
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-primary" />
-                        <span className="text-muted-foreground">المنطقة:</span>
-                        <span className="font-medium">{captain.governorate_name}</span>
+                        <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center">
+                          <MapPin className="h-4 w-4 text-primary" />
+                        </div>
+                        <span className="text-muted-foreground">{captain.governorate_name}</span>
                       </div>
                     )}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Car className="h-4 w-4 text-primary" />
-                      <span className="text-muted-foreground">السيارة:</span>
-                      <span className="font-medium">{captain.car_type || "غير محدد"}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center">
+                        <Car className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="text-foreground font-medium">{captain.car_type || "غير محدد"}</span>
                       {captain.transmission_type && (
-                        <Badge variant="secondary" className="text-xs">
+                        <span className="badge-navy text-xs">
                           {captain.transmission_type === "automatic" || captain.transmission_type === "أوتوماتيك" 
                             ? "أوتوماتيك" 
                             : "مانيوال"}
-                        </Badge>
+                        </span>
                       )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-primary" />
-                      <span className="text-muted-foreground">السعر:</span>
-                      <span className="font-bold text-primary">{captain.hourly_rate} جنيه / ساعة</span>
                     </div>
                   </div>
 
-                  {captain.bio && (
-                    <p className="text-sm text-muted-foreground mt-3 pt-3 border-t line-clamp-2">
-                      {captain.bio}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+                  {/* Price & CTA */}
+                  <div className="flex items-center justify-between mt-5 pt-4 border-t border-primary/10">
+                    <div>
+                      <span className="text-2xl font-bold text-primary">{captain.hourly_rate}</span>
+                      <span className="text-muted-foreground text-sm mr-1">جنيه/ساعة</span>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg gap-1"
+                    >
+                      <span>التفاصيل</span>
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -305,121 +369,152 @@ const CaptainsPage = () => {
 
       {/* Captain Details Modal */}
       <Dialog open={!!selectedCaptain} onOpenChange={() => setSelectedCaptain(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-center text-xl">تفاصيل الكابتن</DialogTitle>
-          </DialogHeader>
-
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0 bg-background border-primary/10">
           {selectedCaptain && (
-            <div className="space-y-6">
-              {/* Personal Photo - Large */}
-              <div className="flex justify-center">
-                <div 
-                  className="relative cursor-pointer"
-                  onClick={() => selectedCaptain.personal_photo_url && openImageModal(selectedCaptain.personal_photo_url)}
+            <>
+              {/* Header with gradient */}
+              <div className="gradient-navy p-8 relative overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.1)_0%,_transparent_50%)]" />
+                
+                <button 
+                  onClick={() => setSelectedCaptain(null)}
+                  className="absolute top-4 left-4 w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
                 >
-                  <Avatar className="h-32 w-32 border-4 border-primary shadow-lg">
-                    <AvatarImage src={selectedCaptain.personal_photo_url || undefined} alt={selectedCaptain.full_name} />
-                    <AvatarFallback>
-                      <User className="h-16 w-16" />
-                    </AvatarFallback>
-                  </Avatar>
-                  {selectedCaptain.is_available && (
-                    <Badge className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-green-500">
-                      متاح
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              {/* Name & Rating */}
-              <div className="text-center">
-                <h3 className="font-bold text-2xl mb-2">{selectedCaptain.full_name}</h3>
-                <div className="flex items-center justify-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                  <span className="font-medium text-lg">{selectedCaptain.rating?.toFixed(1) || "5.0"}</span>
-                  <span className="text-muted-foreground">({selectedCaptain.total_sessions || 0} جلسة تدريبية)</span>
-                </div>
-              </div>
-
-              {/* Details Card */}
-              <div className="bg-muted/50 rounded-xl p-5 space-y-4">
-                {selectedCaptain.governorate_name && (
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-primary" />
-                    <span className="font-medium">المنطقة:</span>
-                    <span>{selectedCaptain.governorate_name}</span>
-                  </div>
-                )}
-
-                <div className="flex items-center gap-3 flex-wrap">
-                  <Car className="h-5 w-5 text-primary" />
-                  <span className="font-medium">السيارة:</span>
-                  <span>{selectedCaptain.car_type || "غير محدد"}</span>
-                  {selectedCaptain.transmission_type && (
-                    <Badge variant="outline">
-                      {selectedCaptain.transmission_type === "automatic" || selectedCaptain.transmission_type === "أوتوماتيك" 
-                        ? "أوتوماتيك" 
-                        : "مانيوال"}
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-primary" />
-                  <span className="font-medium">السعر:</span>
-                  <span className="text-primary font-bold text-lg">{selectedCaptain.hourly_rate} جنيه / ساعة</span>
-                </div>
-
-                {selectedCaptain.phone && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-primary" />
-                    <span className="font-medium">الهاتف:</span>
-                    <span dir="ltr">{selectedCaptain.phone}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Bio */}
-              {selectedCaptain.bio && (
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-lg">نبذة عن الكابتن</h4>
-                  <p className="text-muted-foreground leading-relaxed">{selectedCaptain.bio}</p>
-                </div>
-              )}
-
-              {/* Car Photo */}
-              {selectedCaptain.car_photo_url && (
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-lg flex items-center gap-2">
-                    <ImageIcon className="h-5 w-5" />
-                    صورة السيارة
-                  </h4>
+                  <X className="w-4 h-4 text-white" />
+                </button>
+                
+                <div className="relative z-10 flex flex-col items-center text-center">
+                  {/* Avatar */}
                   <div 
-                    className="rounded-xl overflow-hidden border cursor-pointer hover:opacity-90 transition-opacity"
-                    onClick={() => openImageModal(selectedCaptain.car_photo_url!)}
+                    className="w-28 h-28 rounded-2xl overflow-hidden border-4 border-white/20 bg-white/10 mb-4 cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => selectedCaptain.personal_photo_url && openImageModal(selectedCaptain.personal_photo_url)}
                   >
-                    <img
-                      src={selectedCaptain.car_photo_url}
-                      alt="صورة السيارة"
-                      className="w-full h-64 object-cover"
-                    />
+                    {selectedCaptain.personal_photo_url ? (
+                      <img
+                        src={selectedCaptain.personal_photo_url}
+                        alt={selectedCaptain.full_name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <User className="h-12 w-12 text-white/50" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Name & Rating */}
+                  <h2 className="text-2xl font-bold text-white mb-2">{selectedCaptain.full_name}</h2>
+                  <div className="flex items-center gap-3 text-white/80">
+                    <div className="flex items-center gap-1">
+                      <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                      <span className="font-medium">{selectedCaptain.rating?.toFixed(1) || "5.0"}</span>
+                    </div>
+                    <span className="w-1 h-1 rounded-full bg-white/40" />
+                    <span>{selectedCaptain.total_sessions || 0} جلسة</span>
+                    <span className="w-1 h-1 rounded-full bg-white/40" />
+                    <span className="badge-navy-solid text-xs">متاح</span>
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* Book Button */}
-              <Button className="w-full" size="lg" asChild>
-                <a href="/booking">احجز جلسة تدريبية الآن</a>
-              </Button>
-            </div>
+              {/* Content */}
+              <div className="p-6 space-y-6">
+                {/* Info Cards */}
+                <div className="grid grid-cols-2 gap-4">
+                  {selectedCaptain.governorate_name && (
+                    <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                      <div className="flex items-center gap-2 text-primary mb-1">
+                        <MapPin className="w-4 h-4" />
+                        <span className="text-sm font-medium">المنطقة</span>
+                      </div>
+                      <p className="font-semibold text-foreground">{selectedCaptain.governorate_name}</p>
+                    </div>
+                  )}
+                  <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                    <div className="flex items-center gap-2 text-primary mb-1">
+                      <Clock className="w-4 h-4" />
+                      <span className="text-sm font-medium">السعر</span>
+                    </div>
+                    <p className="font-bold text-foreground text-lg">{selectedCaptain.hourly_rate} جنيه/ساعة</p>
+                  </div>
+                </div>
+
+                {/* Car Info */}
+                <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                  <div className="flex items-center gap-2 text-primary mb-3">
+                    <Car className="w-4 h-4" />
+                    <span className="text-sm font-medium">السيارة</span>
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="font-semibold text-foreground">{selectedCaptain.car_type || "غير محدد"}</span>
+                    {selectedCaptain.transmission_type && (
+                      <span className="badge-navy text-sm">
+                        {selectedCaptain.transmission_type === "automatic" || selectedCaptain.transmission_type === "أوتوماتيك" 
+                          ? "أوتوماتيك" 
+                          : "مانيوال"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Phone */}
+                {selectedCaptain.phone && (
+                  <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                    <div className="flex items-center gap-2 text-primary mb-1">
+                      <Phone className="w-4 h-4" />
+                      <span className="text-sm font-medium">الهاتف</span>
+                    </div>
+                    <p className="font-semibold text-foreground" dir="ltr">{selectedCaptain.phone}</p>
+                  </div>
+                )}
+
+                {/* Bio */}
+                {selectedCaptain.bio && (
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">نبذة عن الكابتن</h4>
+                    <p className="text-muted-foreground leading-relaxed">{selectedCaptain.bio}</p>
+                  </div>
+                )}
+
+                {/* Car Photo */}
+                {selectedCaptain.car_photo_url && (
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-3">صورة السيارة</h4>
+                    <div 
+                      className="rounded-xl overflow-hidden border border-primary/10 cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => openImageModal(selectedCaptain.car_photo_url!)}
+                    >
+                      <img
+                        src={selectedCaptain.car_photo_url}
+                        alt="صورة السيارة"
+                        className="w-full h-56 object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Book Button */}
+                <Button className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-base font-medium" asChild>
+                  <Link to="/booking">
+                    احجز جلسة تدريبية الآن
+                    <ChevronLeft className="w-5 h-5 mr-2" />
+                  </Link>
+                </Button>
+              </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
 
       {/* Image Zoom Modal */}
       <Dialog open={showImageModal} onOpenChange={setShowImageModal}>
-        <DialogContent className="max-w-4xl p-2">
+        <DialogContent className="max-w-4xl p-2 bg-black/95 border-0">
+          <button 
+            onClick={() => setShowImageModal(false)}
+            className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+          >
+            <X className="w-5 h-5 text-white" />
+          </button>
           <img
             src={modalImage}
             alt="صورة مكبرة"
