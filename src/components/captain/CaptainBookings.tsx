@@ -3,8 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Calendar, Clock, User, Phone, Check, X, MessageSquare } from "lucide-react";
+import { Calendar, Clock, User, Phone, Check, X, MessageSquare, Image, CreditCard, Smartphone } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -21,6 +27,10 @@ interface Booking {
   trainee_phone: string;
   notes: string;
   created_at: string;
+  deposit_image_url: string | null;
+  deposit_amount: number | null;
+  payment_method: string | null;
+  payment_status: string | null;
 }
 
 interface CaptainBookingsProps {
@@ -31,6 +41,7 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBookings();
@@ -183,7 +194,26 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
                 className="border rounded-lg p-4 space-y-4"
               >
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                  <div className="space-y-2">
+                  {/* Deposit Image */}
+                  {booking.deposit_image_url && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={booking.deposit_image_url}
+                        alt="صورة الديبوزت"
+                        className="w-24 h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity border"
+                        onClick={() => setPreviewImage(booking.deposit_image_url)}
+                      />
+                      <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                        {booking.payment_method === "instapay" ? (
+                          <><CreditCard className="h-3 w-3" /> انستا باي</>
+                        ) : (
+                          <><Smartphone className="h-3 w-3" /> فودافون كاش</>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">{booking.trainee_name}</span>
@@ -205,9 +235,17 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
                         <span>{booking.booking_time}</span>
                       </div>
                     </div>
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">السعر: </span>
-                      <span className="font-semibold">{booking.total_price} جنيه</span>
+                    <div className="text-sm flex items-center gap-4">
+                      <div>
+                        <span className="text-muted-foreground">السعر: </span>
+                        <span className="font-semibold">{booking.total_price} جنيه</span>
+                      </div>
+                      {booking.deposit_amount && (
+                        <div className="text-primary">
+                          <span className="text-muted-foreground">الديبوزت: </span>
+                          <span className="font-semibold">{booking.deposit_amount} جنيه</span>
+                        </div>
+                      )}
                     </div>
                     {booking.notes && (
                       <p className="text-sm text-muted-foreground bg-muted p-2 rounded">
@@ -243,6 +281,22 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
           </div>
         )}
       </CardContent>
+
+      {/* Image Preview Modal */}
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-4xl max-h-[95vh] p-2">
+          <DialogHeader className="sr-only">
+            <DialogTitle>عرض صورة الديبوزت</DialogTitle>
+          </DialogHeader>
+          {previewImage && (
+            <img 
+              src={previewImage} 
+              alt="صورة الديبوزت" 
+              className="w-full h-full max-h-[85vh] object-contain rounded-lg"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
