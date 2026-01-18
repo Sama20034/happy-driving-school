@@ -26,7 +26,6 @@ const Footer = () => {
               {[
                 { to: "/", label: "الرئيسية" },
                 { to: "/captains", label: "الكباتن" },
-                { to: "/booking", label: "احجز كابتن" },
                 { to: "/about", label: "من نحن" },
                 { to: "/terms", label: "الشروط والأحكام" },
               ].map((link) => (

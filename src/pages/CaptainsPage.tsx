@@ -5,7 +5,7 @@ import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, Car, MapPin, Clock, User, Search, Phone, X, ChevronLeft } from "lucide-react";
+import { Star, Car, MapPin, Clock, User, Search, X, ChevronLeft } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 
@@ -456,17 +456,6 @@ const CaptainsPage = () => {
                     )}
                   </div>
                 </div>
-
-                {/* Phone */}
-                {selectedCaptain.phone && (
-                  <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
-                    <div className="flex items-center gap-2 text-primary mb-1">
-                      <Phone className="w-4 h-4" />
-                      <span className="text-sm font-medium">الهاتف</span>
-                    </div>
-                    <p className="font-semibold text-foreground" dir="ltr">{selectedCaptain.phone}</p>
-                  </div>
-                )}
 
                 {/* Bio */}
                 {selectedCaptain.bio && (
