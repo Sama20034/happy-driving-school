@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Calendar, Clock, User, Phone, Check, X, MessageSquare, Image, CreditCard, Smartphone } from "lucide-react";
+import { Calendar, Clock, User, Phone, Check, X, MessageSquare, Image, CreditCard, Smartphone, Banknote } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -31,6 +31,10 @@ interface Booking {
   deposit_amount: number | null;
   payment_method: string | null;
   payment_status: string | null;
+  captain_confirmed_payment?: boolean;
+  captain_confirmed_at?: string | null;
+  trainee_confirmed_payment?: boolean;
+  trainee_confirmed_at?: string | null;
 }
 
 interface CaptainBookingsProps {
@@ -78,7 +82,8 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
         .order("booking_time", { ascending: false });
 
       if (error) throw error;
-      setBookings(data || []);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setBookings((data as any) || []);
     } catch (error) {
       console.error("Error fetching bookings:", error);
     } finally {
@@ -128,6 +133,56 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
     } catch (error) {
       console.error("Error updating booking:", error);
       toast.error("حدث خطأ أثناء تحديث الحجز");
+    }
+  };
+
+  const confirmPaymentReceived = async (booking: Booking) => {
+    try {
+      const remainingAmount = booking.total_price - (booking.deposit_amount || 0);
+      
+      const { error } = await supabase
+        .from("captain_bookings")
+        .update({ 
+          captain_confirmed_payment: true,
+          captain_confirmed_at: new Date().toISOString(),
+          status: "completed"
+        })
+        .eq("id", booking.id);
+
+      if (error) throw error;
+
+      // Create notification for trainee
+      await supabase.from("notifications").insert({
+        user_id: booking.trainee_id,
+        title: "الكابتن أكد استلام المبلغ",
+        message: `الكابتن أكد استلام المبلغ المتبقي (${remainingAmount} جنيه). يرجى تأكيد الدفع من جانبك.`,
+        type: "payment",
+        related_id: booking.id,
+      });
+
+      // Notify all admins
+      const { data: admins } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      if (admins) {
+        for (const admin of admins) {
+          await supabase.from("notifications").insert({
+            user_id: admin.user_id,
+            title: "تأكيد استلام دفعة",
+            message: `الكابتن أكد استلام ${remainingAmount} جنيه من ${booking.trainee_name}`,
+            type: "payment",
+            related_id: booking.id,
+          });
+        }
+      }
+
+      toast.success("تم تأكيد استلام المبلغ");
+      fetchBookings();
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      toast.error("حدث خطأ أثناء تأكيد الاستلام");
     }
   };
 
@@ -257,11 +312,35 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
                           <span className="font-semibold">{booking.deposit_amount} جنيه</span>
                         </div>
                       )}
+                      {booking.deposit_amount && (
+                        <div className="text-green-600">
+                          <span className="text-muted-foreground">المتبقي: </span>
+                          <span className="font-semibold">{booking.total_price - booking.deposit_amount} جنيه</span>
+                        </div>
+                      )}
                     </div>
                     {booking.notes && (
                       <p className="text-sm text-muted-foreground bg-muted p-2 rounded">
                         {booking.notes}
                       </p>
+                    )}
+
+                    {/* Payment Confirmation Status */}
+                    {(booking.captain_confirmed_payment || booking.trainee_confirmed_payment) && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {booking.captain_confirmed_payment && (
+                          <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
+                            <Check className="h-3 w-3 ml-1" />
+                            أنت أكدت الاستلام
+                          </Badge>
+                        )}
+                        {booking.trainee_confirmed_payment && (
+                          <Badge className="bg-blue-500/20 text-blue-600 border-blue-500/30">
+                            <Check className="h-3 w-3 ml-1" />
+                            المتدرب أكد الدفع
+                          </Badge>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -277,6 +356,16 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
                         ❌ تم رفض الديبوزت من الأدمن
                       </p>
                     )}
+                    {booking.payment_status === "verified" && booking.status === "confirmed" && !booking.captain_confirmed_payment && (
+                      <Button
+                        size="sm"
+                        className="gap-1 bg-green-600 hover:bg-green-700"
+                        onClick={() => confirmPaymentReceived(booking)}
+                      >
+                        <Banknote className="h-4 w-4" />
+                        تأكيد استلام المبلغ
+                      </Button>
+                    )}
                     {booking.payment_status === "verified" && booking.status === "confirmed" && (
                       <Button
                         size="sm"
@@ -289,6 +378,12 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
                         <MessageSquare className="h-4 w-4" />
                         فتح المحادثة
                       </Button>
+                    )}
+                    {booking.captain_confirmed_payment && booking.trainee_confirmed_payment && (
+                      <Badge className="bg-green-500 text-white">
+                        <Check className="h-3 w-3 ml-1" />
+                        تم التوثيق من الطرفين
+                      </Badge>
                     )}
                   </div>
                 </div>

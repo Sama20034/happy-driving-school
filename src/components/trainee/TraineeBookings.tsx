@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Calendar, Clock, User, X, MessageSquare } from "lucide-react";
+import { Calendar, Clock, User, X, MessageSquare, Check, Banknote } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
@@ -22,11 +22,18 @@ interface Booking {
   trainee_phone: string;
   notes: string;
   created_at: string;
+  deposit_amount: number | null;
+  payment_status: string | null;
+  captain_confirmed_payment?: boolean;
+  captain_confirmed_at?: string | null;
+  trainee_confirmed_payment?: boolean;
+  trainee_confirmed_at?: string | null;
   captain_profiles: {
     full_name: string;
     car_type: string;
     transmission_type: string;
     phone: string;
+    user_id: string;
   };
 }
 
@@ -74,7 +81,8 @@ export const TraineeBookings = ({ userId }: TraineeBookingsProps) => {
             full_name,
             car_type,
             transmission_type,
-            phone
+            phone,
+            user_id
           )
         `)
         .eq("trainee_id", userId)
@@ -82,7 +90,8 @@ export const TraineeBookings = ({ userId }: TraineeBookingsProps) => {
         .order("booking_time", { ascending: false });
 
       if (error) throw error;
-      setBookings(data || []);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setBookings((data as any) || []);
     } catch (error) {
       console.error("Error fetching bookings:", error);
     } finally {
@@ -103,6 +112,57 @@ export const TraineeBookings = ({ userId }: TraineeBookingsProps) => {
     } catch (error) {
       console.error("Error cancelling booking:", error);
       toast.error("حدث خطأ أثناء إلغاء الحجز");
+    }
+  };
+
+  const confirmPayment = async (booking: Booking) => {
+    try {
+      const remainingAmount = booking.total_price - (booking.deposit_amount || 0);
+      
+      const { error } = await supabase
+        .from("captain_bookings")
+        .update({ 
+          trainee_confirmed_payment: true,
+          trainee_confirmed_at: new Date().toISOString()
+        })
+        .eq("id", booking.id);
+
+      if (error) throw error;
+
+      // Create notification for captain
+      if (booking.captain_profiles?.user_id) {
+        await supabase.from("notifications").insert({
+          user_id: booking.captain_profiles.user_id,
+          title: "المتدرب أكد دفع المبلغ",
+          message: `${booking.trainee_name} أكد دفع المبلغ المتبقي (${remainingAmount} جنيه)`,
+          type: "payment",
+          related_id: booking.id,
+        });
+      }
+
+      // Notify all admins
+      const { data: admins } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      if (admins) {
+        for (const admin of admins) {
+          await supabase.from("notifications").insert({
+            user_id: admin.user_id,
+            title: "تأكيد دفع من متدرب",
+            message: `${booking.trainee_name} أكد دفع ${remainingAmount} جنيه للكابتن ${booking.captain_profiles?.full_name}`,
+            type: "payment",
+            related_id: booking.id,
+          });
+        }
+      }
+
+      toast.success("تم تأكيد الدفع");
+      fetchBookings();
+    } catch (error) {
+      console.error("Error confirming payment:", error);
+      toast.error("حدث خطأ أثناء تأكيد الدفع");
     }
   };
 
@@ -179,13 +239,55 @@ export const TraineeBookings = ({ userId }: TraineeBookingsProps) => {
                         )}
                       </p>
                     )}
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">السعر: </span>
-                      <span className="font-semibold">{booking.total_price} جنيه</span>
+                    <div className="text-sm flex flex-wrap gap-4">
+                      <div>
+                        <span className="text-muted-foreground">السعر: </span>
+                        <span className="font-semibold">{booking.total_price} جنيه</span>
+                      </div>
+                      {booking.deposit_amount && (
+                        <div className="text-primary">
+                          <span className="text-muted-foreground">الديبوزت: </span>
+                          <span className="font-semibold">{booking.deposit_amount} جنيه</span>
+                        </div>
+                      )}
+                      {booking.deposit_amount && (
+                        <div className="text-green-600">
+                          <span className="text-muted-foreground">المتبقي: </span>
+                          <span className="font-semibold">{booking.total_price - booking.deposit_amount} جنيه</span>
+                        </div>
+                      )}
                     </div>
+
+                    {/* Payment Confirmation Status */}
+                    {(booking.captain_confirmed_payment || booking.trainee_confirmed_payment) && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {booking.trainee_confirmed_payment && (
+                          <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
+                            <Check className="h-3 w-3 ml-1" />
+                            أنت أكدت الدفع
+                          </Badge>
+                        )}
+                        {booking.captain_confirmed_payment && (
+                          <Badge className="bg-blue-500/20 text-blue-600 border-blue-500/30">
+                            <Check className="h-3 w-3 ml-1" />
+                            الكابتن أكد الاستلام
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 items-end">
+                    {booking.status === "confirmed" && !booking.trainee_confirmed_payment && (
+                      <Button
+                        size="sm"
+                        className="gap-1 bg-green-600 hover:bg-green-700"
+                        onClick={() => confirmPayment(booking)}
+                      >
+                        <Banknote className="h-4 w-4" />
+                        تأكيد دفع المبلغ
+                      </Button>
+                    )}
                     {booking.status === "confirmed" && (
                       <Button
                         size="sm"
@@ -207,6 +309,12 @@ export const TraineeBookings = ({ userId }: TraineeBookingsProps) => {
                         <X className="h-4 w-4" />
                         إلغاء
                       </Button>
+                    )}
+                    {booking.captain_confirmed_payment && booking.trainee_confirmed_payment && (
+                      <Badge className="bg-green-500 text-white">
+                        <Check className="h-3 w-3 ml-1" />
+                        تم التوثيق من الطرفين
+                      </Badge>
                     )}
                   </div>
                 </div>
