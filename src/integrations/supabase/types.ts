@@ -174,6 +174,8 @@ export type Database = {
         Row: {
           booking_date: string
           booking_time: string
+          captain_confirmed_at: string | null
+          captain_confirmed_payment: boolean | null
           captain_id: string
           created_at: string
           deposit_amount: number | null
@@ -183,8 +185,11 @@ export type Database = {
           notes: string | null
           payment_method: string | null
           payment_status: string
+          remaining_amount: number | null
           status: string
           total_price: number
+          trainee_confirmed_at: string | null
+          trainee_confirmed_payment: boolean | null
           trainee_id: string
           trainee_name: string
           trainee_phone: string | null
@@ -193,6 +198,8 @@ export type Database = {
         Insert: {
           booking_date: string
           booking_time: string
+          captain_confirmed_at?: string | null
+          captain_confirmed_payment?: boolean | null
           captain_id: string
           created_at?: string
           deposit_amount?: number | null
@@ -202,8 +209,11 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           payment_status?: string
+          remaining_amount?: number | null
           status?: string
           total_price: number
+          trainee_confirmed_at?: string | null
+          trainee_confirmed_payment?: boolean | null
           trainee_id: string
           trainee_name: string
           trainee_phone?: string | null
@@ -212,6 +222,8 @@ export type Database = {
         Update: {
           booking_date?: string
           booking_time?: string
+          captain_confirmed_at?: string | null
+          captain_confirmed_payment?: boolean | null
           captain_id?: string
           created_at?: string
           deposit_amount?: number | null
@@ -221,8 +233,11 @@ export type Database = {
           notes?: string | null
           payment_method?: string | null
           payment_status?: string
+          remaining_amount?: number | null
           status?: string
           total_price?: number
+          trainee_confirmed_at?: string | null
+          trainee_confirmed_payment?: boolean | null
           trainee_id?: string
           trainee_name?: string
           trainee_phone?: string | null
