@@ -155,15 +155,14 @@ const Auth = () => {
           navigate("/");
         }
       } else {
-        // Validate required documents
-        if (!idCardFile || !personalPhotoFile) {
-          toast.error("يرجى رفع صورة البطاقة والصورة الشخصية");
-          setIsSubmitting(false);
-          return;
-        }
-
         // Validate captain-specific documents and fields
         if (selectedRole === 'captain') {
+          // Validate required documents for captain only
+          if (!idCardFile || !personalPhotoFile) {
+            toast.error("يرجى رفع صورة البطاقة والصورة الشخصية");
+            setIsSubmitting(false);
+            return;
+          }
           if (!carLicenseFile || !drivingLicenseFile || !carPhotoFile) {
             toast.error("يرجى رفع جميع مستندات الكابتن المطلوبة");
             setIsSubmitting(false);
@@ -184,43 +183,36 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else if (data?.user) {
-          // Upload common documents
-          const uploadPromises: Promise<string | null>[] = [
-            uploadDocument(idCardFile, data.user.id, 'id_card'),
-            uploadDocument(personalPhotoFile, data.user.id, 'personal_photo')
-          ];
-
-          // Add captain documents if applicable
-          if (selectedRole === 'captain' && carLicenseFile && drivingLicenseFile && carPhotoFile) {
-            uploadPromises.push(
+          // Only upload documents for captain
+          if (selectedRole === 'captain' && idCardFile && personalPhotoFile && carLicenseFile && drivingLicenseFile && carPhotoFile) {
+            const uploadPromises: Promise<string | null>[] = [
+              uploadDocument(idCardFile, data.user.id, 'id_card'),
+              uploadDocument(personalPhotoFile, data.user.id, 'personal_photo'),
               uploadDocument(carLicenseFile, data.user.id, 'car_license'),
               uploadDocument(drivingLicenseFile, data.user.id, 'driving_license'),
               uploadDocument(carPhotoFile, data.user.id, 'car_photo')
-            );
+            ];
+
+            const uploadedUrls = await Promise.all(uploadPromises);
+            const [idCardUrl, personalPhotoUrl, carLicenseUrl, drivingLicenseUrl, carPhotoUrl] = uploadedUrls;
+
+            // Update profile with document URLs for captain
+            const updateData: Record<string, string | null> = {
+              id_card_url: idCardUrl,
+              personal_photo_url: personalPhotoUrl,
+              car_license_url: carLicenseUrl || null,
+              driving_license_url: drivingLicenseUrl || null,
+              car_photo_url: carPhotoUrl || null,
+              car_type: formData.carType,
+              transmission_type: formData.transmissionType,
+              training_governorate_id: formData.trainingGovernorateId
+            };
+
+            await supabase
+              .from('profiles')
+              .update(updateData)
+              .eq('user_id', data.user.id);
           }
-
-          const uploadedUrls = await Promise.all(uploadPromises);
-          const [idCardUrl, personalPhotoUrl, carLicenseUrl, drivingLicenseUrl, carPhotoUrl] = uploadedUrls;
-
-          // Update profile with document URLs
-          const updateData: Record<string, string | null> = {
-            id_card_url: idCardUrl,
-            personal_photo_url: personalPhotoUrl
-          };
-
-          if (selectedRole === 'captain') {
-            updateData.car_license_url = carLicenseUrl || null;
-            updateData.driving_license_url = drivingLicenseUrl || null;
-            updateData.car_photo_url = carPhotoUrl || null;
-            updateData.car_type = formData.carType;
-            updateData.transmission_type = formData.transmissionType;
-            updateData.training_governorate_id = formData.trainingGovernorateId;
-          }
-
-          await supabase
-            .from('profiles')
-            .update(updateData)
-            .eq('user_id', data.user.id);
 
           toast.success("تم إنشاء الحساب بنجاح! في انتظار موافقة الإدارة");
           navigate("/pending-approval");
@@ -410,12 +402,12 @@ const Auth = () => {
                 </div>
               </div>
 
-              {/* Document Upload - Only show on signup */}
-              {!isLogin && (
+              {/* Document Upload - Only show on signup for captain */}
+              {!isLogin && selectedRole === 'captain' && (
                 <div className="space-y-4">
                   <Label className="text-base font-semibold">المستندات المطلوبة *</Label>
                   
-                  {/* Common Documents */}
+                  {/* Common Documents for Captain */}
                   <div className="grid grid-cols-2 gap-3">
                     <DocumentUploadField
                       id="idCardInput"
@@ -434,95 +426,91 @@ const Auth = () => {
                   </div>
 
                   {/* Captain-specific Documents */}
-                  {selectedRole === 'captain' && (
-                    <>
-                      <Label className="text-sm text-primary font-medium">بيانات الكابتن الإضافية *</Label>
-                      
-                      {/* Captain Info Fields */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="space-y-2">
-                          <Label className="flex items-center gap-2 text-sm">
-                            <Car className="h-4 w-4" />
-                            نوع السيارة
-                          </Label>
-                          <Input
-                            placeholder="مثال: تويوتا كورولا"
-                            value={formData.carType}
-                            onChange={(e) => setFormData({ ...formData, carType: e.target.value })}
-                            className="text-right rounded-xl h-10"
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label className="flex items-center gap-2 text-sm">
-                            <Car className="h-4 w-4" />
-                            نوع ناقل الحركة
-                          </Label>
-                          <Select
-                            value={formData.transmissionType}
-                            onValueChange={(value: "manual" | "automatic") => 
-                              setFormData({ ...formData, transmissionType: value })
-                            }
-                          >
-                            <SelectTrigger className="text-right rounded-xl h-10">
-                              <SelectValue placeholder="اختر النوع" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="manual">مانوال</SelectItem>
-                              <SelectItem value="automatic">أوتوماتيك</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label className="flex items-center gap-2 text-sm">
-                            <MapPin className="h-4 w-4" />
-                            محافظة التدريب
-                          </Label>
-                          <Select
-                            value={formData.trainingGovernorateId}
-                            onValueChange={(value) => 
-                              setFormData({ ...formData, trainingGovernorateId: value })
-                            }
-                          >
-                            <SelectTrigger className="text-right rounded-xl h-10">
-                              <SelectValue placeholder="اختر المحافظة" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {governorates.map((gov) => (
-                                <SelectItem key={gov.id} value={gov.id}>{gov.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                  <Label className="text-sm text-primary font-medium">بيانات الكابتن الإضافية *</Label>
+                  
+                  {/* Captain Info Fields */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2 text-sm">
+                        <Car className="h-4 w-4" />
+                        نوع السيارة
+                      </Label>
+                      <Input
+                        placeholder="مثال: تويوتا كورولا"
+                        value={formData.carType}
+                        onChange={(e) => setFormData({ ...formData, carType: e.target.value })}
+                        className="text-right rounded-xl h-10"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2 text-sm">
+                        <Car className="h-4 w-4" />
+                        نوع ناقل الحركة
+                      </Label>
+                      <Select
+                        value={formData.transmissionType}
+                        onValueChange={(value: "manual" | "automatic") => 
+                          setFormData({ ...formData, transmissionType: value })
+                        }
+                      >
+                        <SelectTrigger className="text-right rounded-xl h-10">
+                          <SelectValue placeholder="اختر النوع" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="manual">مانوال</SelectItem>
+                          <SelectItem value="automatic">أوتوماتيك</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2 text-sm">
+                        <MapPin className="h-4 w-4" />
+                        محافظة التدريب
+                      </Label>
+                      <Select
+                        value={formData.trainingGovernorateId}
+                        onValueChange={(value) => 
+                          setFormData({ ...formData, trainingGovernorateId: value })
+                        }
+                      >
+                        <SelectTrigger className="text-right rounded-xl h-10">
+                          <SelectValue placeholder="اختر المحافظة" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {governorates.map((gov) => (
+                            <SelectItem key={gov.id} value={gov.id}>{gov.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-                      <Label className="text-sm text-primary font-medium mt-4">مستندات الكابتن *</Label>
-                      <div className="grid grid-cols-3 gap-3">
-                        <DocumentUploadField
-                          id="carLicenseInput"
-                          label="رخصة السيارة"
-                          icon={FileText}
-                          preview={carLicensePreview}
-                          type="car_license"
-                        />
-                        <DocumentUploadField
-                          id="drivingLicenseInput"
-                          label="الرخصة الشخصية"
-                          icon={FileText}
-                          preview={drivingLicensePreview}
-                          type="driving_license"
-                        />
-                        <DocumentUploadField
-                          id="carPhotoInput"
-                          label="صورة العربية"
-                          icon={Camera}
-                          preview={carPhotoPreview}
-                          type="car_photo"
-                        />
-                      </div>
-                    </>
-                  )}
+                  <Label className="text-sm text-primary font-medium mt-4">مستندات الكابتن *</Label>
+                  <div className="grid grid-cols-3 gap-3">
+                    <DocumentUploadField
+                      id="carLicenseInput"
+                      label="رخصة السيارة"
+                      icon={FileText}
+                      preview={carLicensePreview}
+                      type="car_license"
+                    />
+                    <DocumentUploadField
+                      id="drivingLicenseInput"
+                      label="الرخصة الشخصية"
+                      icon={FileText}
+                      preview={drivingLicensePreview}
+                      type="driving_license"
+                    />
+                    <DocumentUploadField
+                      id="carPhotoInput"
+                      label="صورة العربية"
+                      icon={Camera}
+                      preview={carPhotoPreview}
+                      type="car_photo"
+                    />
+                  </div>
                 </div>
               )}
 
