@@ -206,18 +206,13 @@ const Auth = () => {
               car_photo_url: carPhotoUrl || null,
               car_type: formData.carType,
               transmission_type: formData.transmissionType,
-              training_governorate_id: formData.trainingGovernorateId
+              training_governorate_id: formData.trainingGovernorateId,
+              meeting_point: formData.meetingPoint || null
             };
 
             await supabase
               .from('profiles')
               .update(updateData)
-              .eq('user_id', data.user.id);
-          } else if (selectedRole === 'trainee' && formData.meetingPoint) {
-            // Update profile with meeting point for trainee
-            await supabase
-              .from('profiles')
-              .update({ meeting_point: formData.meetingPoint })
               .eq('user_id', data.user.id);
           }
 
@@ -369,24 +364,6 @@ const Auth = () => {
                 </div>
               )}
 
-              {/* Meeting Point - Only for trainee */}
-              {!isLogin && selectedRole === 'trainee' && (
-                <div className="space-y-2">
-                  <Label htmlFor="meetingPoint">نقطة الالتقاء للتدريب</Label>
-                  <div className="relative">
-                    <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                      id="meetingPoint"
-                      type="text"
-                      placeholder="مثال: ميدان التحرير - أمام مترو السادات"
-                      className="pr-10 text-right rounded-xl h-12"
-                      value={formData.meetingPoint}
-                      onChange={(e) => setFormData({ ...formData, meetingPoint: e.target.value })}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">المكان الذي تفضل أن يلتقي بك الكابتن فيه</p>
-                </div>
-              )}
 
               <div className="space-y-2">
                 <Label htmlFor="email">البريد الإلكتروني</Label>
@@ -511,6 +488,21 @@ const Auth = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+
+                  {/* Meeting Point for Captain */}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4" />
+                      نقطة الالتقاء للتدريب
+                    </Label>
+                    <Input
+                      placeholder="مثال: ميدان التحرير - أمام مترو السادات"
+                      value={formData.meetingPoint}
+                      onChange={(e) => setFormData({ ...formData, meetingPoint: e.target.value })}
+                      className="text-right rounded-xl h-10"
+                    />
+                    <p className="text-xs text-muted-foreground">المكان الذي ستلتقي فيه بالمتدربين</p>
                   </div>
 
                   <Label className="text-sm text-primary font-medium mt-4">مستندات الكابتن *</Label>
