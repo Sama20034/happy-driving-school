@@ -79,10 +79,10 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        'soft': '0 2px 8px -2px rgba(30, 42, 92, 0.08)',
-        'soft-md': '0 4px 16px -4px rgba(30, 42, 92, 0.1)',
-        'soft-lg': '0 8px 24px -6px rgba(30, 42, 92, 0.12)',
-        'soft-xl': '0 16px 40px -8px rgba(30, 42, 92, 0.15)',
+        'soft': '0 2px 8px -2px rgba(12, 97, 242, 0.08)',
+        'soft-md': '0 4px 16px -4px rgba(12, 97, 242, 0.1)',
+        'soft-lg': '0 8px 24px -6px rgba(12, 97, 242, 0.12)',
+        'soft-xl': '0 16px 40px -8px rgba(12, 97, 242, 0.15)',
       },
       keyframes: {
         "accordion-down": {

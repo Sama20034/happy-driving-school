@@ -8,43 +8,43 @@
 @layer base {
   :root {
     /* ═══════════════════════════════════════════════════════════
-       🎨 CAPTAINS DRIVE - Navy Blue Dominant Design System
+       🎨 CAPTAINS DRIVE - Facebook Blue Design System
        ═══════════════════════════════════════════════════════════
        
-       Primary: #1E2A5C - Deep Navy Blue
-       Secondary Blue: #2D3A6E - Medium Navy
-       Light Blue: #3D4A7E - Soft Navy
-       Accent Blue: #4A5A8E - Highlight
-       Background: #F5F1E8 - Warm Cream
+       Primary: #0C61F2 - Facebook Blue (218° 93% 50%)
+       Dark Blue: #0A4FC7 - Darker shade
+       Light Blue: #3D8AF5 - Lighter shade
+       Accent Blue: #69A8F8 - Highlight
+       Background: #F0F4FA - Cool Blue-tinted White
        
     ═══════════════════════════════════════════════════════════ */
 
-    /* Primary Color - Deep Navy Blue #1E2A5C */
-    --primary: 228 52% 24%;
+    /* Primary Color - Facebook Blue #0C61F2 */
+    --primary: 218 93% 50%;
     --primary-foreground: 0 0% 100%;
 
-    /* Background - Warm Cream with Navy tint */
-    --background: 225 25% 97%;
-    --foreground: 228 45% 12%;
+    /* Background - Cool blue-tinted white */
+    --background: 218 40% 98%;
+    --foreground: 218 60% 15%;
 
     /* Card - White with subtle blue */
     --card: 0 0% 100%;
-    --card-foreground: 228 45% 12%;
+    --card-foreground: 218 60% 15%;
 
     /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 228 45% 12%;
+    --popover-foreground: 218 60% 15%;
 
-    /* Secondary - Light Navy */
-    --secondary: 228 35% 94%;
-    --secondary-foreground: 228 52% 24%;
+    /* Secondary - Light Blue */
+    --secondary: 218 45% 95%;
+    --secondary-foreground: 218 93% 45%;
 
     /* Muted - Blue-tinted gray */
-    --muted: 225 20% 92%;
-    --muted-foreground: 228 20% 45%;
+    --muted: 218 25% 92%;
+    --muted-foreground: 218 20% 45%;
 
     /* Accent - Medium Blue */
-    --accent: 228 45% 35%;
+    --accent: 218 85% 60%;
     --accent-foreground: 0 0% 100%;
 
     /* Destructive */
@@ -53,50 +53,50 @@
 
     /* Warning */
     --warning: 38 92% 50%;
-    --warning-foreground: 228 45% 12%;
+    --warning-foreground: 218 60% 15%;
 
     /* Info */
-    --info: 210 100% 50%;
+    --info: 218 93% 50%;
     --info-foreground: 0 0% 100%;
 
     /* Borders - Blue-tinted */
-    --border: 225 20% 88%;
-    --input: 225 20% 88%;
-    --ring: 228 52% 24%;
+    --border: 218 30% 88%;
+    --input: 218 30% 88%;
+    --ring: 218 93% 50%;
 
     --radius: 0.75rem;
 
-    /* Sidebar - Deep Navy */
-    --sidebar-background: 228 55% 18%;
+    /* Sidebar - Deep Blue */
+    --sidebar-background: 218 85% 25%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 228 45% 55%;
+    --sidebar-primary: 218 85% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 228 50% 25%;
+    --sidebar-accent: 218 80% 35%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 228 45% 22%;
-    --sidebar-ring: 228 45% 55%;
+    --sidebar-border: 218 75% 30%;
+    --sidebar-ring: 218 85% 65%;
   }
 
   .dark {
-    --background: 228 35% 7%;
-    --foreground: 225 20% 95%;
+    --background: 218 40% 7%;
+    --foreground: 218 20% 95%;
 
-    --card: 228 32% 11%;
-    --card-foreground: 225 20% 95%;
+    --card: 218 35% 11%;
+    --card-foreground: 218 20% 95%;
 
-    --popover: 228 32% 11%;
-    --popover-foreground: 225 20% 95%;
+    --popover: 218 35% 11%;
+    --popover-foreground: 218 20% 95%;
 
-    --primary: 228 50% 55%;
+    --primary: 218 85% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 228 25% 16%;
-    --secondary-foreground: 225 20% 90%;
+    --secondary: 218 30% 16%;
+    --secondary-foreground: 218 20% 90%;
 
-    --muted: 228 22% 14%;
-    --muted-foreground: 228 15% 55%;
+    --muted: 218 25% 14%;
+    --muted-foreground: 218 15% 55%;
 
-    --accent: 228 45% 45%;
+    --accent: 218 75% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 50%;
@@ -105,21 +105,21 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --info: 210 100% 55%;
+    --info: 218 85% 55%;
     --info-foreground: 0 0% 100%;
 
-    --border: 228 22% 16%;
-    --input: 228 22% 16%;
-    --ring: 228 50% 55%;
+    --border: 218 25% 16%;
+    --input: 218 25% 16%;
+    --ring: 218 85% 55%;
 
-    --sidebar-background: 228 35% 8%;
-    --sidebar-foreground: 225 20% 90%;
-    --sidebar-primary: 228 50% 55%;
+    --sidebar-background: 218 40% 8%;
+    --sidebar-foreground: 218 20% 90%;
+    --sidebar-primary: 218 85% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 228 28% 14%;
-    --sidebar-accent-foreground: 225 20% 85%;
-    --sidebar-border: 228 22% 14%;
-    --sidebar-ring: 228 50% 55%;
+    --sidebar-accent: 218 30% 14%;
+    --sidebar-accent-foreground: 218 20% 85%;
+    --sidebar-border: 218 25% 14%;
+    --sidebar-ring: 218 85% 55%;
   }
 
   * {
@@ -151,44 +151,44 @@
     @apply py-12 md:py-16;
   }
 
-  /* Gradient Backgrounds */
+  /* Gradient Backgrounds - Facebook Blue */
   .gradient-navy {
-    background: linear-gradient(135deg, hsl(228, 52%, 24%) 0%, hsl(228, 45%, 32%) 50%, hsl(228, 40%, 38%) 100%);
+    background: linear-gradient(135deg, hsl(218, 93%, 50%) 0%, hsl(218, 85%, 55%) 50%, hsl(218, 80%, 60%) 100%);
   }
 
   .gradient-navy-dark {
-    background: linear-gradient(180deg, hsl(228, 55%, 18%) 0%, hsl(228, 52%, 24%) 50%, hsl(228, 45%, 28%) 100%);
+    background: linear-gradient(180deg, hsl(218, 85%, 25%) 0%, hsl(218, 90%, 35%) 50%, hsl(218, 93%, 45%) 100%);
   }
 
   .gradient-navy-radial {
-    background: radial-gradient(ellipse at top, hsl(228, 45%, 35%) 0%, hsl(228, 52%, 24%) 50%, hsl(228, 55%, 18%) 100%);
+    background: radial-gradient(ellipse at top, hsl(218, 85%, 55%) 0%, hsl(218, 93%, 50%) 50%, hsl(218, 85%, 35%) 100%);
   }
 
   .gradient-navy-soft {
-    background: linear-gradient(135deg, hsl(225, 25%, 97%) 0%, hsl(225, 30%, 94%) 50%, hsl(228, 35%, 92%) 100%);
+    background: linear-gradient(135deg, hsl(218, 40%, 98%) 0%, hsl(218, 45%, 95%) 50%, hsl(218, 50%, 92%) 100%);
   }
 
   /* Card Styles */
   .card-navy {
     @apply bg-card rounded-2xl border border-primary/10;
     @apply transition-all duration-300 ease-out;
-    box-shadow: 0 4px 20px -4px hsl(228 52% 24% / 0.08);
+    box-shadow: 0 4px 20px -4px hsl(218 93% 50% / 0.08);
   }
 
   .card-navy:hover {
     @apply border-primary/20;
-    box-shadow: 0 12px 32px -8px hsl(228 52% 24% / 0.15);
+    box-shadow: 0 12px 32px -8px hsl(218 93% 50% / 0.18);
     transform: translateY(-4px);
   }
 
   .card-elevated {
     @apply bg-card rounded-2xl;
-    box-shadow: 0 2px 12px -2px hsl(228 52% 24% / 0.1);
+    box-shadow: 0 2px 12px -2px hsl(218 93% 50% / 0.1);
     @apply transition-all duration-300;
   }
 
   .card-elevated:hover {
-    box-shadow: 0 8px 24px -4px hsl(228 52% 24% / 0.15);
+    box-shadow: 0 8px 24px -4px hsl(218 93% 50% / 0.18);
     transform: translateY(-2px);
   }
 
@@ -197,12 +197,12 @@
     @apply bg-primary text-primary-foreground font-medium;
     @apply px-6 py-3 rounded-xl;
     @apply transition-all duration-200;
-    box-shadow: 0 4px 14px -2px hsl(228 52% 24% / 0.35);
+    box-shadow: 0 4px 14px -2px hsl(218 93% 50% / 0.35);
   }
 
   .btn-navy:hover {
     @apply bg-primary/90;
-    box-shadow: 0 6px 20px -2px hsl(228 52% 24% / 0.45);
+    box-shadow: 0 6px 20px -2px hsl(218 93% 50% / 0.45);
     transform: translateY(-1px);
   }
 
@@ -261,12 +261,12 @@
   /* Text Gradient */
   .text-gradient-navy {
     @apply bg-clip-text text-transparent;
-    background: linear-gradient(135deg, hsl(228, 52%, 24%) 0%, hsl(228, 45%, 40%) 100%);
+    background: linear-gradient(135deg, hsl(218, 93%, 50%) 0%, hsl(218, 85%, 60%) 100%);
   }
 
   /* Navy Overlay */
   .overlay-navy {
-    background: linear-gradient(180deg, hsl(228 52% 24% / 0.9) 0%, hsl(228 52% 24% / 0.95) 100%);
+    background: linear-gradient(180deg, hsl(218 93% 50% / 0.9) 0%, hsl(218 85% 40% / 0.95) 100%);
   }
 
   /* Animations */
@@ -292,10 +292,10 @@
 
   @keyframes glow {
     0%, 100% {
-      box-shadow: 0 0 20px hsl(228 52% 24% / 0.2);
+      box-shadow: 0 0 20px hsl(218 93% 50% / 0.2);
     }
     50% {
-      box-shadow: 0 0 40px hsl(228 52% 24% / 0.4);
+      box-shadow: 0 0 40px hsl(218 93% 50% / 0.4);
     }
   }
 
@@ -328,7 +328,7 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      hsl(228 52% 24% / 0.1) 50%,
+      hsl(218 93% 50% / 0.1) 50%,
       transparent 100%
     );
     background-size: 200% 100%;
