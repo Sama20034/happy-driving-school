@@ -836,6 +836,7 @@ export type Database = {
           id: string
           id_card_url: string | null
           is_approved: boolean | null
+          meeting_point: string | null
           personal_photo_url: string | null
           phone: string | null
           rejection_reason: string | null
@@ -855,6 +856,7 @@ export type Database = {
           id: string
           id_card_url?: string | null
           is_approved?: boolean | null
+          meeting_point?: string | null
           personal_photo_url?: string | null
           phone?: string | null
           rejection_reason?: string | null
@@ -874,6 +876,7 @@ export type Database = {
           id?: string
           id_card_url?: string | null
           is_approved?: boolean | null
+          meeting_point?: string | null
           personal_photo_url?: string | null
           phone?: string | null
           rejection_reason?: string | null

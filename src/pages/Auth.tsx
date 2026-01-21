@@ -34,6 +34,7 @@ const Auth = () => {
     email: "",
     password: "",
     fullName: "",
+    meetingPoint: "",
     carType: "",
     transmissionType: "" as "manual" | "automatic" | "",
     trainingGovernorateId: "",
@@ -212,6 +213,12 @@ const Auth = () => {
               .from('profiles')
               .update(updateData)
               .eq('user_id', data.user.id);
+          } else if (selectedRole === 'trainee' && formData.meetingPoint) {
+            // Update profile with meeting point for trainee
+            await supabase
+              .from('profiles')
+              .update({ meeting_point: formData.meetingPoint })
+              .eq('user_id', data.user.id);
           }
 
           toast.success("تم إنشاء الحساب بنجاح! في انتظار موافقة الإدارة");
@@ -359,6 +366,25 @@ const Auth = () => {
                       required
                     />
                   </div>
+                </div>
+              )}
+
+              {/* Meeting Point - Only for trainee */}
+              {!isLogin && selectedRole === 'trainee' && (
+                <div className="space-y-2">
+                  <Label htmlFor="meetingPoint">نقطة الالتقاء للتدريب</Label>
+                  <div className="relative">
+                    <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="meetingPoint"
+                      type="text"
+                      placeholder="مثال: ميدان التحرير - أمام مترو السادات"
+                      className="pr-10 text-right rounded-xl h-12"
+                      value={formData.meetingPoint}
+                      onChange={(e) => setFormData({ ...formData, meetingPoint: e.target.value })}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">المكان الذي تفضل أن يلتقي بك الكابتن فيه</p>
                 </div>
               )}
 
