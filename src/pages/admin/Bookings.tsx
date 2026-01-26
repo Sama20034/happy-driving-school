@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { Check, X, Clock, Trash2 } from "lucide-react";
+import { Check, X, Clock, Trash2, CheckCircle, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -122,6 +122,107 @@ const Bookings = () => {
     }
   };
 
+  const updateCaptainBookingStatus = async (booking: CaptainBooking, newStatus: string) => {
+    const { error } = await supabase
+      .from("captain_bookings")
+      .update({ status: newStatus })
+      .eq("id", booking.id);
+
+    if (error) {
+      toast.error("خطأ في تحديث الحالة");
+      return;
+    }
+
+    // If completed, add amount to captain wallet
+    if (newStatus === "completed") {
+      await addToWalletOnCompletion(booking);
+    }
+
+    toast.success("تم تحديث الحالة");
+    fetchAll();
+  };
+
+  const addToWalletOnCompletion = async (booking: CaptainBooking) => {
+    try {
+      // Check if captain has wallet
+      const { data: wallet, error: walletError } = await supabase
+        .from("captain_wallets")
+        .select("id, balance")
+        .eq("captain_id", booking.captain_id)
+        .maybeSingle();
+
+      if (walletError) throw walletError;
+
+      if (!wallet) {
+        // Create wallet if doesn't exist
+        const { data: newWallet, error: createError } = await supabase
+          .from("captain_wallets")
+          .insert({ captain_id: booking.captain_id, balance: booking.total_price })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // Add transaction record
+        await supabase.from("wallet_transactions").insert({
+          wallet_id: newWallet.id,
+          captain_id: booking.captain_id,
+          amount: booking.total_price,
+          transaction_type: "booking_payment",
+          description: `مستحقات حجز - ${booking.trainee_name} - ${booking.booking_date}`,
+          created_by: user?.id,
+        });
+      } else {
+        // Update existing wallet
+        const newBalance = Number(wallet.balance) + Number(booking.total_price);
+        
+        const { error: updateError } = await supabase
+          .from("captain_wallets")
+          .update({ balance: newBalance })
+          .eq("id", wallet.id);
+
+        if (updateError) throw updateError;
+
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // Add transaction record
+        await supabase.from("wallet_transactions").insert({
+          wallet_id: wallet.id,
+          captain_id: booking.captain_id,
+          amount: booking.total_price,
+          transaction_type: "booking_payment",
+          description: `مستحقات حجز - ${booking.trainee_name} - ${booking.booking_date}`,
+          created_by: user?.id,
+        });
+      }
+
+      // Notify captain
+      const { data: captainProfile } = await supabase
+        .from("captain_profiles")
+        .select("user_id")
+        .eq("id", booking.captain_id)
+        .single();
+
+      if (captainProfile) {
+        await supabase.from("notifications").insert({
+          user_id: captainProfile.user_id,
+          title: "تم إضافة مستحقات حجز للمحفظة",
+          message: `تم إضافة ${booking.total_price} جنيه لمحفظتك من حجز ${booking.trainee_name}`,
+          type: "wallet",
+        });
+      }
+
+      toast.success("تم إضافة المبلغ للمحفظة");
+    } catch (error) {
+      console.error("Error adding to wallet:", error);
+      toast.error("خطأ في إضافة المبلغ للمحفظة");
+    }
+  };
+
   const deleteBooking = async (id: string) => {
     if (!confirm("هل أنت متأكد من حذف هذا الحجز؟")) return;
 
@@ -177,6 +278,7 @@ const Bookings = () => {
                         <TableHead className="text-right">الحالة</TableHead>
                         <TableHead className="text-right">حالة الدفع</TableHead>
                         <TableHead className="text-right">الإجمالي</TableHead>
+                        <TableHead className="text-right">إجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -188,12 +290,46 @@ const Bookings = () => {
                           <TableCell>{b.booking_date}</TableCell>
                           <TableCell>{b.booking_time}</TableCell>
                           <TableCell>
-                            <Badge variant="outline">{b.status}</Badge>
+                            <Badge 
+                              variant="outline"
+                              className={
+                                b.status === "completed" ? "bg-green-500/20 text-green-600" :
+                                b.status === "confirmed" ? "bg-blue-500/20 text-blue-600" :
+                                b.status === "cancelled" ? "bg-red-500/20 text-red-600" :
+                                "bg-yellow-500/20 text-yellow-600"
+                              }
+                            >
+                              {b.status === "completed" ? "مكتمل" :
+                               b.status === "confirmed" ? "مؤكد" :
+                               b.status === "cancelled" ? "ملغي" :
+                               "قيد الانتظار"}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <Badge variant="secondary">{b.payment_status}</Badge>
                           </TableCell>
                           <TableCell>{Number(b.total_price || 0).toFixed(0)} جنيه</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              {b.status === "confirmed" && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-green-600 border-green-600 hover:bg-green-50"
+                                  onClick={() => updateCaptainBookingStatus(b, "completed")}
+                                >
+                                  <CheckCircle className="h-4 w-4 ml-1" />
+                                  اكتمل
+                                </Button>
+                              )}
+                              {b.status === "completed" && (
+                                <Badge className="bg-green-500 flex items-center gap-1">
+                                  <Wallet className="h-3 w-3" />
+                                  تمت الإضافة للمحفظة
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

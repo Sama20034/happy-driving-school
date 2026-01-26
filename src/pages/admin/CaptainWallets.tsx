@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Wallet, Plus, Send, History, User } from "lucide-react";
+import { Wallet, Plus, Send, History, User, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
@@ -34,6 +34,8 @@ interface CaptainWithWallet {
     id: string;
     balance: number;
   } | null;
+  totalDeposits?: number;
+  totalSettlements?: number;
 }
 
 interface Transaction {
@@ -42,6 +44,13 @@ interface Transaction {
   transaction_type: string;
   description: string | null;
   created_at: string;
+}
+
+interface WalletStats {
+  totalBalance: number;
+  totalDeposits: number;
+  totalSettlements: number;
+  captainsWithBalance: number;
 }
 
 const CaptainWallets = () => {
@@ -55,6 +64,12 @@ const CaptainWallets = () => {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [stats, setStats] = useState<WalletStats>({
+    totalBalance: 0,
+    totalDeposits: 0,
+    totalSettlements: 0,
+    captainsWithBalance: 0,
+  });
 
   useEffect(() => {
     fetchCaptainsWithWallets();
@@ -77,13 +92,48 @@ const CaptainWallets = () => {
 
       if (walletsError) throw walletsError;
 
-      // Merge captains with their wallets
+      // Fetch all transactions for stats
+      const { data: transactionsData, error: transactionsError } = await supabase
+        .from("wallet_transactions")
+        .select("captain_id, amount, transaction_type");
+
+      if (transactionsError) throw transactionsError;
+
+      // Calculate per-captain stats
+      const captainStats: Record<string, { deposits: number; settlements: number }> = {};
+      transactionsData?.forEach((tx) => {
+        if (!captainStats[tx.captain_id]) {
+          captainStats[tx.captain_id] = { deposits: 0, settlements: 0 };
+        }
+        if (tx.transaction_type === "deposit" || tx.transaction_type === "booking_payment") {
+          captainStats[tx.captain_id].deposits += Number(tx.amount);
+        } else if (tx.transaction_type === "settlement") {
+          captainStats[tx.captain_id].settlements += Math.abs(Number(tx.amount));
+        }
+      });
+
+      // Merge captains with their wallets and stats
       const captainsWithWallets = captainsData?.map((captain) => ({
         ...captain,
         wallet: walletsData?.find((w) => w.captain_id === captain.id) || null,
+        totalDeposits: captainStats[captain.id]?.deposits || 0,
+        totalSettlements: captainStats[captain.id]?.settlements || 0,
       }));
 
       setCaptains(captainsWithWallets || []);
+
+      // Calculate overall stats
+      const totalBalance = walletsData?.reduce((sum, w) => sum + Number(w.balance), 0) || 0;
+      const totalDeposits = Object.values(captainStats).reduce((sum, s) => sum + s.deposits, 0);
+      const totalSettlements = Object.values(captainStats).reduce((sum, s) => sum + s.settlements, 0);
+      const captainsWithBalance = walletsData?.filter((w) => Number(w.balance) > 0).length || 0;
+
+      setStats({
+        totalBalance,
+        totalDeposits,
+        totalSettlements,
+        captainsWithBalance,
+      });
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("حدث خطأ أثناء تحميل البيانات");
@@ -266,6 +316,62 @@ const CaptainWallets = () => {
         <h1 className="text-3xl font-bold">محافظ الكباتن</h1>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-primary/10 rounded-full">
+                <DollarSign className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">إجمالي الأرصدة الحالية</p>
+                <p className="text-2xl font-bold">{stats.totalBalance.toLocaleString()} جنيه</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-green-500/10 rounded-full">
+                <TrendingUp className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">إجمالي الإيداعات</p>
+                <p className="text-2xl font-bold text-green-600">{stats.totalDeposits.toLocaleString()} جنيه</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-500/10 rounded-full">
+                <TrendingDown className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">إجمالي التحويلات</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.totalSettlements.toLocaleString()} جنيه</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-orange-500/10 rounded-full">
+                <User className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">كباتن لديهم رصيد</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.captainsWithBalance}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>قائمة الكباتن والمحافظ</CardTitle>
@@ -276,7 +382,9 @@ const CaptainWallets = () => {
               <TableRow>
                 <TableHead>الكابتن</TableHead>
                 <TableHead>الهاتف</TableHead>
-                <TableHead>الرصيد</TableHead>
+                <TableHead>الرصيد الحالي</TableHead>
+                <TableHead>إجمالي الإيداعات</TableHead>
+                <TableHead>إجمالي التحويلات</TableHead>
                 <TableHead>الإجراءات</TableHead>
               </TableRow>
             </TableHeader>
@@ -298,6 +406,16 @@ const CaptainWallets = () => {
                     ) : (
                       <Badge variant="outline">لا توجد محفظة</Badge>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-green-600 font-medium">
+                      {(captain.totalDeposits || 0).toLocaleString()} جنيه
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-blue-600 font-medium">
+                      {(captain.totalSettlements || 0).toLocaleString()} جنيه
+                    </span>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
