@@ -39,7 +39,7 @@ import DiscountCodes from "./pages/admin/DiscountCodes";
 import UserApprovals from "./pages/admin/UserApprovals";
 import BookingDeposits from "./pages/admin/BookingDeposits";
 import AdminChats from "./pages/admin/AdminChats";
-import SocialSidebar from "./components/layout/SocialSidebar";
+
 
 import ScrollToTop from "./components/ScrollToTop";
 const queryClient = new QueryClient();
@@ -52,7 +52,7 @@ const App = () => (
           <ScrollToTop />
           <Toaster />
           <Sonner />
-          <SocialSidebar />
+          
           
           <Routes>
             <Route path="/" element={<Index />} />
