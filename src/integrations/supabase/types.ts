@@ -356,6 +356,38 @@ export type Database = {
           },
         ]
       }
+      captain_wallets: {
+        Row: {
+          balance: number
+          captain_id: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          captain_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          captain_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "captain_wallets_captain_id_fkey"
+            columns: ["captain_id"]
+            isOneToOne: true
+            referencedRelation: "captain_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       captains: {
         Row: {
           branch_id: string
@@ -930,6 +962,54 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          captain_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          transaction_type: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          captain_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          transaction_type: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          captain_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          transaction_type?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_captain_id_fkey"
+            columns: ["captain_id"]
+            isOneToOne: false
+            referencedRelation: "captain_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "captain_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

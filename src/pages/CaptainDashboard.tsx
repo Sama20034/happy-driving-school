@@ -10,12 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { User, Calendar, MessageSquare, Bell, Car, Clock, MapPin, Star } from "lucide-react";
+import { User, Calendar, MessageSquare, Bell, Car, Clock, MapPin, Star, Wallet } from "lucide-react";
 import { CaptainSchedule } from "@/components/captain/CaptainSchedule";
 import { CaptainBookings } from "@/components/captain/CaptainBookings";
 import { NotificationsList } from "@/components/notifications/NotificationsList";
 import { ChatList } from "@/components/chat/ChatList";
 import { AdminSupportButton } from "@/components/chat/AdminSupportButton";
+import { CaptainWallet } from "@/components/captain/CaptainWallet";
 
 interface CaptainProfile {
   id: string;
@@ -173,7 +174,7 @@ const CaptainDashboard = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
             <TabsTrigger value="profile" className="gap-2">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">بياناتي</span>
@@ -185,6 +186,10 @@ const CaptainDashboard = () => {
             <TabsTrigger value="bookings" className="gap-2">
               <Clock className="h-4 w-4" />
               <span className="hidden sm:inline">الحجوزات</span>
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="gap-2">
+              <Wallet className="h-4 w-4" />
+              <span className="hidden sm:inline">المحفظة</span>
             </TabsTrigger>
             <TabsTrigger value="messages" className="gap-2 relative">
               <MessageSquare className="h-4 w-4" />
@@ -324,6 +329,18 @@ const CaptainDashboard = () => {
           <TabsContent value="bookings">
             {profile ? (
               <CaptainBookings captainId={profile.id} />
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">يرجى حفظ بياناتك الشخصية أولاً</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="wallet">
+            {profile ? (
+              <CaptainWallet captainId={profile.id} />
             ) : (
               <Card>
                 <CardContent className="py-12 text-center">
