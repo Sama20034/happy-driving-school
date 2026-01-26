@@ -39,7 +39,7 @@ import DiscountCodes from "./pages/admin/DiscountCodes";
 import UserApprovals from "./pages/admin/UserApprovals";
 import BookingDeposits from "./pages/admin/BookingDeposits";
 import AdminChats from "./pages/admin/AdminChats";
-
+import CaptainWallets from "./pages/admin/CaptainWallets";
 
 import ScrollToTop from "./components/ScrollToTop";
 const queryClient = new QueryClient();
@@ -91,6 +91,7 @@ const App = () => (
               <Route path="store-orders" element={<StoreOrders />} />
               <Route path="user-approvals" element={<UserApprovals />} />
               <Route path="chats" element={<AdminChats />} />
+              <Route path="captain-wallets" element={<CaptainWallets />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
