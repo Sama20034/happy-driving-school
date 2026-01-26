@@ -1,27 +1,34 @@
 import { supabase } from "@/integrations/supabase/client";
 
+// رفع المستندات إلى Hostinger
+const UPLOAD_URL = 'https://captainmisr.com/upload.php';
+
 export const uploadUserDocument = async (
   file: File,
   userId: string,
   documentType: 'id_card' | 'personal_photo'
 ): Promise<string | null> => {
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${userId}/${documentType}_${Date.now()}.${fileExt}`;
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
 
-  const { error } = await supabase.storage
-    .from('user-documents')
-    .upload(fileName, file);
+    const response = await fetch(UPLOAD_URL, {
+      method: 'POST',
+      body: formData,
+    });
 
-  if (error) {
+    const result = await response.json();
+    
+    if (result.success) {
+      return result.url;
+    } else {
+      console.error('Error uploading document:', result.error);
+      return null;
+    }
+  } catch (error) {
     console.error('Error uploading document:', error);
     return null;
   }
-
-  const { data: { publicUrl } } = supabase.storage
-    .from('user-documents')
-    .getPublicUrl(fileName);
-
-  return publicUrl;
 };
 
 export const updateProfileDocuments = async (
