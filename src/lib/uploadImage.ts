@@ -1,5 +1,5 @@
 // رفع الصور إلى Hostinger
-const UPLOAD_URL = 'https://dinaahmedacademy.com/upload.php';
+const UPLOAD_URL = 'https://captainmisr.com/upload.php';
 
 export interface UploadResult {
   success: boolean;
