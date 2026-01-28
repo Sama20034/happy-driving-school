@@ -18,7 +18,7 @@ const PendingApproval = () => {
   return (
     <>
       <Helmet>
-        <title>في انتظار الموافقة | كباتن القيادة</title>
+        <title>في انتظار الموافقة | كابتن مصر</title>
       </Helmet>
 
       <Header />

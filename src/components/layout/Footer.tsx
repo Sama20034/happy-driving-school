@@ -12,7 +12,7 @@ const Footer = () => {
               <div className="w-9 h-9 rounded-lg bg-primary-foreground/10 flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-base">ك</span>
               </div>
-              <span className="text-lg font-semibold">كباتن القيادة</span>
+              <span className="text-lg font-semibold">كابتن مصر</span>
             </div>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
               منصة حجز كباتن تدريب القيادة الموثوقين. نوفر بيئة آمنة للتدريب مع ضمان حقوق المتدرب والكابتن.
@@ -101,7 +101,7 @@ const Footer = () => {
 
         <div className="border-t border-primary-foreground/10 mt-12 pt-6 text-center">
           <p className="text-primary-foreground/60 text-sm">
-            © {new Date().getFullYear()} كباتن القيادة. جميع الحقوق محفوظة
+            © {new Date().getFullYear()} كابتن مصر. جميع الحقوق محفوظة
           </p>
         </div>
       </div>

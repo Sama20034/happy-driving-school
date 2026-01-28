@@ -279,7 +279,7 @@ const Auth = () => {
   return (
     <>
       <Helmet>
-        <title>{isLogin ? "تسجيل الدخول" : "إنشاء حساب"} | كباتن القيادة</title>
+        <title>{isLogin ? "تسجيل الدخول" : "إنشاء حساب"} | كابتن مصر</title>
       </Helmet>
 
       <Header />
