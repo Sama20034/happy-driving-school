@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Phone, MapPin, Facebook, Instagram, MessageCircle } from "lucide-react";
+import { Phone, MapPin } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -64,36 +64,13 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Social Media */}
+          {/* App Info */}
           <div>
-            <h4 className="font-semibold mb-4">تابعنا</h4>
-            <div className="flex items-center gap-3 mb-3">
-              <a 
-                href="https://www.facebook.com" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="w-9 h-9 rounded-lg bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors"
-              >
-                <Facebook size={18} />
-              </a>
-              <a 
-                href="https://www.instagram.com" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="w-9 h-9 rounded-lg bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors"
-              >
-                <Instagram size={18} />
-              </a>
-              <a 
-                href="https://wa.me/201220501299" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="w-9 h-9 rounded-lg bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors"
-              >
-                <MessageCircle size={18} />
-              </a>
-            </div>
-            <p className="text-primary-foreground/60 text-xs">
+            <h4 className="font-semibold mb-4">التطبيق</h4>
+            <p className="text-primary-foreground/70 text-sm leading-relaxed">
+              حمّل تطبيق كابتن مصر واحجز كابتن التدريب المناسب لك بسهولة وأمان.
+            </p>
+            <p className="text-primary-foreground/60 text-xs mt-3">
               تواصل معنا على مدار الساعة
             </p>
           </div>
