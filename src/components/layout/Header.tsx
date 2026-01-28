@@ -41,7 +41,7 @@ const Header = () => {
             <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center backdrop-blur-sm border border-white/10">
               <span className="text-white font-bold text-base">ك</span>
             </div>
-            <span className="text-lg font-semibold text-white">كباتن القيادة</span>
+            <span className="text-lg font-semibold text-white">كابتن مصر</span>
           </Link>
 
           {/* Desktop Navigation */}
