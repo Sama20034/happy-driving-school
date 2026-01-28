@@ -76,9 +76,21 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-primary-foreground/10 mt-12 pt-6 text-center">
+        <div className="border-t border-primary-foreground/10 mt-12 pt-6 text-center space-y-2">
           <p className="text-primary-foreground/60 text-sm">
             © {new Date().getFullYear()} كابتن مصر. جميع الحقوق محفوظة
+          </p>
+          <p className="text-primary-foreground/50 text-xs">
+            © created by{" "}
+            <a 
+              href="https://digitfans.site/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-primary-foreground transition-colors underline"
+            >
+              Digitfans
+            </a>{" "}
+            2026
           </p>
         </div>
       </div>
