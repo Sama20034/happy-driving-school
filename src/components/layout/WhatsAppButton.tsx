@@ -1,16 +1,15 @@
 import { MessageCircle } from "lucide-react";
 
-const WHATSAPP_NUMBER = "201515160511";
-const WHATSAPP_MESSAGE = "مرحباً، أريد الاستفسار عن كورسات تعليم السواقة";
-
 const WhatsAppButton = () => {
-  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+  const handleWhatsAppClick = () => {
+    const phoneNumber = "201515160511";
+    const message = encodeURIComponent("مرحباً، أريد الاستفسار عن كورسات تعليم السواقة");
+    window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
+  };
 
   return (
-    <a
-      href={whatsappUrl}
-      target="_blank"
-      rel="noopener noreferrer"
+    <button
+      onClick={handleWhatsAppClick}
       className="whatsapp-float group"
       aria-label="تواصل معنا عبر واتساب"
     >
@@ -18,7 +17,7 @@ const WhatsAppButton = () => {
       <span className="absolute right-full mr-3 bg-card text-foreground px-3 py-1.5 rounded-lg text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg">
         تواصل معنا
       </span>
-    </a>
+    </button>
   );
 };
 
