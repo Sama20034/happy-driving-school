@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, Package, MessageCircle, Wallet, Copy, Check } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, Package, MessageCircle, Wallet, Copy, Check, Truck } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -21,7 +21,7 @@ const Cart = () => {
     address: "",
     notes: "",
   });
-  const [paymentMethod, setPaymentMethod] = useState<"wallet" | "whatsapp">("wallet");
+  const [paymentMethod, setPaymentMethod] = useState<"wallet" | "whatsapp" | "cod">("wallet");
   const [copiedNumber, setCopiedNumber] = useState<string | null>(null);
 
   const WHATSAPP_NUMBER = "201220501299";
@@ -37,7 +37,7 @@ const Cart = () => {
     setTimeout(() => setCopiedNumber(null), 2000);
   };
 
-  const handleWhatsAppOrder = (isPaid: boolean = false) => {
+  const handleWhatsAppOrder = (isPaid: boolean = false, isCOD: boolean = false) => {
     if (items.length === 0) {
       toast.error("السلة فارغة");
       return;
@@ -53,6 +53,12 @@ const Cart = () => {
       .map((item) => `• ${item.name} (${item.quantity} × ${item.price} ج.م) = ${item.price * item.quantity} ج.م`)
       .join("\n");
 
+    const paymentStatus = isPaid 
+      ? "✅ *تم الدفع عبر المحفظة/انستاباي*" 
+      : isCOD 
+        ? "💵 *الدفع عند الاستلام*"
+        : "💳 *في انتظار التأكيد*";
+
     const message = `🛒 *طلب جديد من المتجر*
 
 👤 *بيانات العميل:*
@@ -66,7 +72,7 @@ ${itemsList}
 
 💰 *الإجمالي: ${getTotalPrice()} ج.م*
 
-${isPaid ? "✅ *تم الدفع عبر المحفظة/انستاباي*" : "💳 *في انتظار التأكيد*"}`;
+${paymentStatus}`;
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
@@ -78,9 +84,11 @@ ${isPaid ? "✅ *تم الدفع عبر المحفظة/انستاباي*" : "�
   const handleSubmitOrder = (e: React.FormEvent) => {
     e.preventDefault();
     if (paymentMethod === "wallet") {
-      handleWhatsAppOrder(true);
+      handleWhatsAppOrder(true, false);
+    } else if (paymentMethod === "cod") {
+      handleWhatsAppOrder(false, true);
     } else {
-      handleWhatsAppOrder(false);
+      handleWhatsAppOrder(false, false);
     }
   };
 
@@ -291,6 +299,33 @@ ${isPaid ? "✅ *تم الدفع عبر المحفظة/انستاباي*" : "�
                         </div>
                       </div>
 
+                      {/* Cash on Delivery Option */}
+                      <div
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                          paymentMethod === "cod"
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                        onClick={() => setPaymentMethod("cod")}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                              paymentMethod === "cod" ? "border-primary" : "border-muted-foreground"
+                            }`}>
+                              {paymentMethod === "cod" && (
+                                <div className="w-3 h-3 rounded-full bg-primary" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-semibold">الدفع عند الاستلام</p>
+                              <p className="text-sm text-muted-foreground">ادفع نقداً عند استلام الطلب</p>
+                            </div>
+                          </div>
+                          <Truck className="h-5 w-5 text-orange-600" />
+                        </div>
+                      </div>
+
                       {/* WhatsApp Option */}
                       <div
                         className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
@@ -387,11 +422,20 @@ ${isPaid ? "✅ *تم الدفع عبر المحفظة/انستاباي*" : "�
 
                     <Button
                       type="submit"
-                      className="w-full bg-green-600 hover:bg-green-700"
+                      className={`w-full ${paymentMethod === "cod" ? "bg-orange-600 hover:bg-orange-700" : "bg-green-600 hover:bg-green-700"}`}
                       size="lg"
                     >
-                      <MessageCircle className="ml-2 h-5 w-5" />
-                      {paymentMethod === "wallet" ? "تأكيد الطلب عبر واتساب" : "طلب عبر واتساب"}
+                      {paymentMethod === "cod" ? (
+                        <>
+                          <Truck className="ml-2 h-5 w-5" />
+                          تأكيد الطلب - الدفع عند الاستلام
+                        </>
+                      ) : (
+                        <>
+                          <MessageCircle className="ml-2 h-5 w-5" />
+                          {paymentMethod === "wallet" ? "تأكيد الطلب عبر واتساب" : "طلب عبر واتساب"}
+                        </>
+                      )}
                     </Button>
                   </form>
                 </CardContent>
