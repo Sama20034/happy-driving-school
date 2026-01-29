@@ -18,6 +18,7 @@ import Cart from "./pages/Cart";
 import MyOrders from "./pages/MyOrders";
 import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
+import Contact from "./pages/Contact";
 import PendingApproval from "./pages/PendingApproval";
 import CaptainDashboard from "./pages/CaptainDashboard";
 import TraineeDashboard from "./pages/TraineeDashboard";
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/cart" element={<Cart />} />
             <Route path="/my-orders" element={<MyOrders />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/pending-approval" element={<PendingApproval />} />
             <Route path="/captain-dashboard" element={<CaptainDashboard />} />
             <Route path="/trainee-dashboard" element={<TraineeDashboard />} />
