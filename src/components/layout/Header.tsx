@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, User, Calendar, LogOut, Settings, ShoppingCart, Package, LayoutDashboard } from "lucide-react";
+import logoImg from "@/assets/logo-captain-misr.png";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -37,11 +38,8 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center backdrop-blur-sm border border-white/10">
-              <span className="text-white font-bold text-base">ك</span>
-            </div>
-            <span className="text-lg font-semibold text-white">كابتن مصر</span>
+          <Link to="/" className="flex items-center">
+            <img src={logoImg} alt="كابتن مصر لتعليم القيادة" className="h-12 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
