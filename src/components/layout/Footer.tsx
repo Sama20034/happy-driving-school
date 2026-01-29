@@ -47,20 +47,20 @@ const Footer = () => {
               <li>
                 <a 
                   href="tel:01211119095" 
-                  className="inline-flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors text-sm justify-center md:justify-end flex-row-reverse"
+                  className="inline-flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors text-sm justify-center md:justify-start"
                 >
                   <Phone size={16} />
                   <span dir="ltr">0121 111 9095</span>
                 </a>
               </li>
-              <li className="flex items-center gap-2 text-primary-foreground/80 text-sm justify-center md:justify-end flex-row-reverse">
+              <li className="flex items-center gap-2 text-primary-foreground/80 text-sm justify-center md:justify-start">
                 <MapPin size={16} />
                 <span>مصر - القاهرة والجيزة</span>
               </li>
             </ul>
             
             {/* Social Links */}
-            <div className="flex items-center gap-4 mt-5 justify-center md:justify-end">
+            <div className="flex items-center gap-4 mt-5 justify-center md:justify-start">
               <a 
                 href="https://www.instagram.com/captinmisr_co?igsh=MThvdHo3Z2cxN3BtZg==" 
                 target="_blank" 
