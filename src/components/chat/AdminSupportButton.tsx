@@ -18,14 +18,14 @@ export const AdminSupportButton = () => {
       icon: MessageCircle,
       title: "واتساب",
       description: "تواصل معنا عبر واتساب",
-      action: () => window.open("https://wa.me/201234567890", "_blank"),
+      action: () => window.open("https://wa.me/201515160511", "_blank"),
       color: "bg-green-500 hover:bg-green-600",
     },
     {
       icon: Phone,
       title: "اتصال هاتفي",
       description: "اتصل بنا مباشرة",
-      action: () => window.open("tel:+201234567890", "_blank"),
+      action: () => window.open("tel:+201515160511", "_blank"),
       color: "bg-primary hover:bg-primary/90",
     },
     {

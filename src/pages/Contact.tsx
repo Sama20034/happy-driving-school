@@ -12,15 +12,15 @@ const Contact = () => {
     {
       icon: Phone,
       title: "اتصل بنا",
-      value: "0121 111 9095",
-      href: "tel:01211119095",
+      value: "0151 516 0511",
+      href: "tel:01515160511",
       color: "from-emerald-500 to-teal-600",
     },
     {
       icon: MessageCircle,
       title: "واتساب",
-      value: "0122 050 1299",
-      href: "https://wa.me/201220501299",
+      value: "0151 516 0511",
+      href: "https://wa.me/201515160511",
       color: "from-green-500 to-emerald-600",
     },
     {
@@ -166,7 +166,7 @@ const Contact = () => {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">اتصل بنا</p>
-                        <p className="font-semibold" dir="ltr">0121 111 9095</p>
+                        <p className="font-semibold" dir="ltr">0151 516 0511</p>
                       </div>
                     </div>
                     
@@ -176,7 +176,7 @@ const Contact = () => {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">واتساب</p>
-                        <p className="font-semibold" dir="ltr">0122 050 1299</p>
+                        <p className="font-semibold" dir="ltr">0151 516 0511</p>
                       </div>
                     </div>
                   </div>
