@@ -50,12 +50,6 @@ const Footer = () => {
                   <span dir="ltr">0121 111 9095</span>
                 </a>
               </li>
-              <li>
-                <a href="tel:01220501299" className="flex items-center gap-2 text-primary-foreground/70 hover:text-primary-foreground transition-colors text-sm">
-                  <Phone size={16} />
-                  <span dir="ltr">0122 050 1299</span>
-                </a>
-              </li>
               <li className="flex items-center gap-2 text-primary-foreground/70 text-sm">
                 <MapPin size={16} />
                 <span>مصر - القاهرة والجيزة</span>
@@ -87,17 +81,6 @@ const Footer = () => {
                 </svg>
               </a>
             </div>
-          </div>
-
-          {/* App Info */}
-          <div>
-            <h4 className="font-semibold mb-4">التطبيق</h4>
-            <p className="text-primary-foreground/70 text-sm leading-relaxed">
-              حمّل تطبيق كابتن مصر واحجز كابتن التدريب المناسب لك بسهولة وأمان.
-            </p>
-            <p className="text-primary-foreground/60 text-xs mt-3">
-              تواصل معنا على مدار الساعة
-            </p>
           </div>
         </div>
 
