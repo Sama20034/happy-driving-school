@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { User, Calendar, MessageSquare, Bell, Car, Clock, MapPin, Star, Wallet } from "lucide-react";
+import { User, Calendar, MessageSquare, Bell, Car, Clock, MapPin, Star, Wallet, FileText } from "lucide-react";
 import { CaptainSchedule } from "@/components/captain/CaptainSchedule";
 import { CaptainBookings } from "@/components/captain/CaptainBookings";
 import { NotificationsList } from "@/components/notifications/NotificationsList";
@@ -174,7 +175,7 @@ const CaptainDashboard = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-grid">
             <TabsTrigger value="profile" className="gap-2">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">بياناتي</span>
@@ -194,6 +195,10 @@ const CaptainDashboard = () => {
             <TabsTrigger value="messages" className="gap-2 relative">
               <MessageSquare className="h-4 w-4" />
               <span className="hidden sm:inline">المحادثات</span>
+            </TabsTrigger>
+            <TabsTrigger value="terms" className="gap-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">الشروط</span>
             </TabsTrigger>
           </TabsList>
 
@@ -360,6 +365,38 @@ const CaptainDashboard = () => {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="terms">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  الشروط والأحكام
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="prose prose-sm max-w-none text-muted-foreground">
+                  <h3 className="text-foreground font-semibold">سياسات الاستخدام الهامة:</h3>
+                  <ul className="space-y-2 mt-3">
+                    <li>• <strong>الالتزام بالمواعيد:</strong> تُحسب الحصة على العميل في حال الإلغاء قبل الموعد بأقل من ساعة أو في حال التأخر.</li>
+                    <li>• <strong>منع اصطحاب الأطفال:</strong> يمنع اصطحاب الأطفال أثناء التدريب.</li>
+                    <li>• <strong>شرط العمر للمرافق:</strong> يجب أن يكون عمر المرافق 18 سنة على الأقل.</li>
+                    <li>• <strong>نقطة التدريب:</strong> المدرب هو المسؤول عن تحديد نقطة بداية ونهاية التدريب.</li>
+                    <li>• <strong>تأجيل الكورس:</strong> في حال تأجيل الكورس، الحد الأقصى هو 3 أشهر قبل إلغاء التعاقد.</li>
+                    <li>• <strong>إلغاء الكورس:</strong> لا يمكن إلغاء الكورس بعد بدء التدريب العملي.</li>
+                  </ul>
+                </div>
+                <div className="pt-4 border-t">
+                  <Link to="/terms">
+                    <Button variant="outline" className="gap-2">
+                      <FileText className="h-4 w-4" />
+                      عرض الشروط والأحكام الكاملة
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
