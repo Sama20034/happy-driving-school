@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Phone, MapPin } from "lucide-react";
-import logoImg from "@/assets/logo-captain-misr.png";
+import logoImg from "@/assets/logo-captain-misr-colored.png";
 
 const Footer = () => {
   return (
@@ -10,7 +10,7 @@ const Footer = () => {
           {/* Logo & About */}
           <div>
             <div className="mb-4">
-              <img src={logoImg} alt="كابتن مصر لتعليم القيادة" className="h-14 w-auto brightness-0 invert" />
+              <img src={logoImg} alt="كابتن مصر لتعليم القيادة" className="h-14 w-auto" />
             </div>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
               منصة حجز كباتن تدريب القيادة الموثوقين. نوفر بيئة آمنة للتدريب مع ضمان حقوق المتدرب والكابتن.
