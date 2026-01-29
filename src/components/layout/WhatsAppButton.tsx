@@ -1,6 +1,6 @@
 import { MessageCircle } from "lucide-react";
 
-const WHATSAPP_NUMBER = "201220501299";
+const WHATSAPP_NUMBER = "201515160511";
 const WHATSAPP_MESSAGE = "مرحباً، أريد الاستفسار عن كورسات تعليم السواقة";
 
 const WhatsAppButton = () => {
