@@ -68,10 +68,10 @@ const InstallPrompt = () => {
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
 
-    // Show prompt after 3 seconds
+    // Show prompt after 5 seconds
     const timer = setTimeout(() => {
       setShowPrompt(true);
-    }, 3000);
+    }, 5000);
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
