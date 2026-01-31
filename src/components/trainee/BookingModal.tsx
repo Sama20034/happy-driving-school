@@ -102,6 +102,13 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
       setBookingType("session");
       setSelectedCourseId("");
     }
+    
+    // Cleanup object URL to prevent memory leak
+    return () => {
+      if (depositImagePreview) {
+        URL.revokeObjectURL(depositImagePreview);
+      }
+    };
   }, [open, captain.id]);
 
   useEffect(() => {
@@ -190,6 +197,10 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
       if (!file.type.startsWith("image/")) {
         toast.error("يرجى اختيار صورة");
         return;
+      }
+      // Revoke old URL before creating new one to prevent memory leak
+      if (depositImagePreview) {
+        URL.revokeObjectURL(depositImagePreview);
       }
       setDepositImage(file);
       setDepositImagePreview(URL.createObjectURL(file));
