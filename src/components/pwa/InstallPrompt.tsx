@@ -85,12 +85,20 @@ const InstallPrompt = () => {
 
   const handleInstallAndroid = async () => {
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
-        setIsInstalled(true);
+      try {
+        await deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          setIsInstalled(true);
+          setShowInstallModal(false);
+        }
+        setDeferredPrompt(null);
+      } catch (error) {
+        console.error("Error installing PWA:", error);
       }
-      setDeferredPrompt(null);
+    } else {
+      // If no deferred prompt, show manual instructions
+      alert("لتثبيت التطبيق:\n\n• على Chrome: اضغط على النقاط الثلاث ← تثبيت التطبيق\n• على Safari: اضغط على زر المشاركة ← إضافة إلى الشاشة الرئيسية");
     }
     // Show discount code after clicking install
     if (pwaDiscountCode) {

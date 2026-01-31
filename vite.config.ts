@@ -17,9 +17,9 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "pwa-icon-192.png", "pwa-icon-512.png"],
       manifest: {
-        name: "أكاديمية كابتن دينا",
-        short_name: "كابتن دينا",
-        description: "أكاديمية تعليم القيادة - كابتن دينا أحمد",
+        name: "كابتن مصر لتعليم قيادة السيارات",
+        short_name: "كابتن مصر",
+        description: "كابتن مصر - منصة حجز كباتن تدريب القيادة الموثوقين",
         theme_color: "#d946ef",
         background_color: "#ffffff",
         display: "standalone",
