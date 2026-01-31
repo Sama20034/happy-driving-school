@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, User, Calendar, LogOut, Settings, ShoppingCart, Package, LayoutDashboard } from "lucide-react";
-import logoImg from "@/assets/logo-new.png";
+import logoImg from "@/assets/logo-captain-misr.png";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
