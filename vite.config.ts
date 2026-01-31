@@ -15,6 +15,10 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
+      // Enable PWA features in dev/preview so Chrome can fire beforeinstallprompt
+      devOptions: {
+        enabled: true,
+      },
       includeAssets: ["favicon.ico", "pwa-icon-192.png", "pwa-icon-512.png"],
       manifest: {
         name: "كابتن مصر لتعليم قيادة السيارات",

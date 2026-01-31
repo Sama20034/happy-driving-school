@@ -25,11 +25,17 @@ const InstallPrompt = () => {
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [delayElapsed, setDelayElapsed] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
   const [showDiscountCode, setShowDiscountCode] = useState(false);
   const [pwaDiscountCode, setPwaDiscountCode] = useState<DiscountCode | null>(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    const ua = window.navigator.userAgent.toLowerCase();
+    const isAppleMobile = /iphone|ipad|ipod/.test(ua);
+    setIsIOS(isAppleMobile);
+
     // Fetch PWA discount code
     const fetchPwaCode = async () => {
       const { data } = await supabase
@@ -70,7 +76,7 @@ const InstallPrompt = () => {
 
     // Show prompt after 5 seconds
     const timer = setTimeout(() => {
-      setShowPrompt(true);
+      setDelayElapsed(true);
     }, 5000);
 
     return () => {
@@ -78,6 +84,16 @@ const InstallPrompt = () => {
       clearTimeout(timer);
     };
   }, []);
+
+  // Only show the banner when install prompt is actually available (Chrome/Android)
+  // or when we're on iOS (manual Add to Home Screen flow).
+  useEffect(() => {
+    if (isInstalled) return;
+    if (!delayElapsed) return;
+    if (isIOS || deferredPrompt) {
+      setShowPrompt(true);
+    }
+  }, [delayElapsed, deferredPrompt, isIOS, isInstalled]);
 
   const handleOpenInstallModal = () => {
     setShowInstallModal(true);
