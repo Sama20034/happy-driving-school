@@ -43,6 +43,7 @@ import AdminChats from "./pages/admin/AdminChats";
 import CaptainWallets from "./pages/admin/CaptainWallets";
 
 import ScrollToTop from "./components/ScrollToTop";
+import InstallPrompt from "./components/pwa/InstallPrompt";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -53,6 +54,7 @@ const App = () => (
           <ScrollToTop />
           <Toaster />
           <Sonner />
+          <InstallPrompt />
           
           
           <Routes>
