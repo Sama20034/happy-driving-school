@@ -30,6 +30,8 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>('trainee');
   
+  const [isSigningUp, setIsSigningUp] = useState(false);
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -68,10 +70,11 @@ const Auth = () => {
   const [carPhotoPreview, setCarPhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user && !loading) {
+    // Don't redirect during signup process
+    if (user && !loading && !isSigningUp) {
       navigate("/");
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, isSigningUp]);
 
   const handleFileChange = (file: File | null, type: DocumentType) => {
     if (file) {
@@ -156,22 +159,28 @@ const Auth = () => {
           navigate("/");
         }
       } else {
+        // Set signing up flag to prevent auto-redirect
+        setIsSigningUp(true);
+        
         // Validate captain-specific documents and fields
         if (selectedRole === 'captain') {
           // Validate required documents for captain only
           if (!idCardFile || !personalPhotoFile) {
             toast.error("يرجى رفع صورة البطاقة والصورة الشخصية");
             setIsSubmitting(false);
+            setIsSigningUp(false);
             return;
           }
           if (!carLicenseFile || !drivingLicenseFile || !carPhotoFile) {
             toast.error("يرجى رفع جميع مستندات الكابتن المطلوبة");
             setIsSubmitting(false);
+            setIsSigningUp(false);
             return;
           }
           if (!formData.carType || !formData.transmissionType || !formData.trainingGovernorateId) {
             toast.error("يرجى ملء جميع بيانات الكابتن المطلوبة");
             setIsSubmitting(false);
+            setIsSigningUp(false);
             return;
           }
         }
@@ -183,6 +192,7 @@ const Auth = () => {
           } else {
             toast.error(error.message);
           }
+          setIsSigningUp(false);
         } else if (data?.user) {
           // Only upload documents for captain
           if (selectedRole === 'captain' && idCardFile && personalPhotoFile && carLicenseFile && drivingLicenseFile && carPhotoFile) {
@@ -217,6 +227,7 @@ const Auth = () => {
           }
 
           toast.success("تم إنشاء الحساب بنجاح! في انتظار موافقة الإدارة");
+          setIsSigningUp(false);
           navigate("/pending-approval");
         }
       }
