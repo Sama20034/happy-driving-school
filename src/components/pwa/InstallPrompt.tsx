@@ -139,11 +139,11 @@ const InstallPrompt = () => {
               </h3>
               {pwaDiscountCode ? (
                 <p className="text-sm text-muted-foreground mt-1">
-                  <span className="text-primary font-medium">🎁 حمّل التطبيق واحصل على كود خصم!</span>
+                  <span className="text-primary font-medium">🎁 حمّل تطبيق كابتن مصر واحصل على كود خصم!</span>
                 </p>
               ) : (
                 <p className="text-sm text-muted-foreground mt-1">
-                  احصل على تجربة أفضل مع تطبيق أكاديمية كابتن دينا
+                  احصل على تجربة أفضل مع تطبيق كابتن مصر
                 </p>
               )}
             </div>
