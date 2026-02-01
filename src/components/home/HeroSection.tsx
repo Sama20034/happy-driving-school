@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft, Shield, Star, Users, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const HeroSection = () => {
+  const { user } = useAuth();
   return (
     <section className="min-h-[92vh] gradient-navy flex items-center relative overflow-hidden">
       {/* Decorative elements */}
@@ -60,34 +62,36 @@ const HeroSection = () => {
             احجز كابتن تدريب موثوق بالقرب منك، شوف التقييمات ونوع العربية، وابدأ التدريب بأمان
           </p>
 
-          {/* CTA Buttons */}
-          <div 
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-fade-up"
-            style={{ animationDelay: '0.3s' }}
-          >
-            <Button 
-              size="lg" 
-              className="bg-white text-primary hover:bg-white/95 text-base px-8 py-6 rounded-xl font-semibold shadow-xl shadow-black/20 transition-all hover:scale-[1.02]" 
-              asChild
+          {/* CTA Buttons - Only show if not logged in */}
+          {!user && (
+            <div 
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-fade-up"
+              style={{ animationDelay: '0.3s' }}
             >
-              <Link to="/auth?role=trainee">
-                سجّل الآن كمتدرب
-                <ArrowLeft className="mr-2 w-5 h-5" />
-              </Link>
-            </Button>
-            
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="bg-white/10 border-2 border-white/25 text-white hover:bg-white/20 hover:border-white/40 text-base px-8 py-6 rounded-xl font-medium backdrop-blur-sm transition-all" 
-              asChild
-            >
-              <Link to="/auth?role=captain">
-                سجّل الآن ككابتن
-                <ArrowLeft className="mr-2 w-5 h-5" />
-              </Link>
-            </Button>
-          </div>
+              <Button 
+                size="lg" 
+                className="bg-white text-primary hover:bg-white/95 text-base px-8 py-6 rounded-xl font-semibold shadow-xl shadow-black/20 transition-all hover:scale-[1.02]" 
+                asChild
+              >
+                <Link to="/auth?role=trainee">
+                  سجّل الآن كمتدرب
+                  <ArrowLeft className="mr-2 w-5 h-5" />
+                </Link>
+              </Button>
+              
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="bg-white/10 border-2 border-white/25 text-white hover:bg-white/20 hover:border-white/40 text-base px-8 py-6 rounded-xl font-medium backdrop-blur-sm transition-all" 
+                asChild
+              >
+                <Link to="/auth?role=captain">
+                  سجّل الآن ككابتن
+                  <ArrowLeft className="mr-2 w-5 h-5" />
+                </Link>
+              </Button>
+            </div>
+          )}
 
           {/* Stats */}
           <div 
