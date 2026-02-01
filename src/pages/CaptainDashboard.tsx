@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { User, Calendar, MessageSquare, Bell, Car, Clock, MapPin, Star, Wallet, FileText, GraduationCap } from "lucide-react";
+import { User, Calendar, MessageSquare, Bell, Car, Clock, MapPin, Star, Wallet, FileText, GraduationCap, Home } from "lucide-react";
 import { CaptainSchedule } from "@/components/captain/CaptainSchedule";
 import { CaptainBookings } from "@/components/captain/CaptainBookings";
 import { NotificationsList } from "@/components/notifications/NotificationsList";
@@ -167,7 +167,14 @@ const CaptainDashboard = () => {
     <div className="min-h-screen bg-background" dir="rtl">
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <h1 className="text-3xl font-bold">لوحة تحكم الكابتن</h1>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="icon" asChild>
+              <Link to="/">
+                <Home className="h-5 w-5" />
+              </Link>
+            </Button>
+            <h1 className="text-3xl font-bold">لوحة تحكم الكابتن</h1>
+          </div>
           <div className="flex items-center gap-4 flex-wrap">
             <AdminSupportButton />
             <Badge variant={formData.is_available ? "default" : "secondary"}>
