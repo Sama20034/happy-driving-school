@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Users, Calendar, MessageSquare, Bell, MapPin, Star, Car, Clock, FileText } from "lucide-react";
+import { Users, Calendar, MessageSquare, Bell, MapPin, Star, Car, Clock, FileText, Home } from "lucide-react";
 import { CaptainCard } from "@/components/trainee/CaptainCard";
 import { TraineeBookings } from "@/components/trainee/TraineeBookings";
 import { ChatList } from "@/components/chat/ChatList";
@@ -107,7 +107,14 @@ const TraineeDashboard = () => {
     <div className="min-h-screen bg-background" dir="rtl">
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <h1 className="text-3xl font-bold">مرحباً بك</h1>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="icon" asChild>
+              <Link to="/">
+                <Home className="h-5 w-5" />
+              </Link>
+            </Button>
+            <h1 className="text-3xl font-bold">مرحباً بك</h1>
+          </div>
           <AdminSupportButton />
         </div>
 
