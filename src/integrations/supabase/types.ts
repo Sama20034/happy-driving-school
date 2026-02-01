@@ -253,6 +253,41 @@ export type Database = {
           },
         ]
       }
+      captain_course_prices: {
+        Row: {
+          captain_id: string
+          course_type: string
+          created_at: string
+          id: string
+          session_price: number
+          updated_at: string
+        }
+        Insert: {
+          captain_id: string
+          course_type: string
+          created_at?: string
+          id?: string
+          session_price?: number
+          updated_at?: string
+        }
+        Update: {
+          captain_id?: string
+          course_type?: string
+          created_at?: string
+          id?: string
+          session_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "captain_course_prices_captain_id_fkey"
+            columns: ["captain_id"]
+            isOneToOne: false
+            referencedRelation: "captain_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       captain_profiles: {
         Row: {
           bio: string | null

@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, Car, MapPin, Clock, User, Eye } from "lucide-react";
+import { Star, Car, MapPin, Clock, User, Eye, GraduationCap } from "lucide-react";
 import { BookingModal } from "./BookingModal";
 import { CaptainDetailsModal } from "./CaptainDetailsModal";
 
@@ -25,6 +26,19 @@ interface Captain {
   total_sessions: number;
 }
 
+interface CoursePrice {
+  course_type: string;
+  session_price: number;
+}
+
+const COURSE_CONFIG: Record<string, { name: string; sessions: number }> = {
+  practice: { name: "الممارسة", sessions: 6 },
+  beginner: { name: "المبتدئين", sessions: 8 },
+  professional: { name: "الاحتراف", sessions: 10 }
+};
+
+const DISCOUNT_PERCENTAGE = 0.05;
+
 interface CaptainCardProps {
   captain: Captain;
 }
@@ -32,6 +46,23 @@ interface CaptainCardProps {
 export const CaptainCard = ({ captain }: CaptainCardProps) => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [coursePrices, setCoursePrices] = useState<CoursePrice[]>([]);
+
+  useEffect(() => {
+    fetchCoursePrices();
+  }, [captain.id]);
+
+  const fetchCoursePrices = async () => {
+    const { data } = await supabase
+      .from("captain_course_prices")
+      .select("course_type, session_price")
+      .eq("captain_id", captain.id);
+    if (data) setCoursePrices(data);
+  };
+
+  const calculateCourseTotal = (sessionPrice: number, sessions: number) => {
+    return Math.round(sessionPrice * sessions * (1 - DISCOUNT_PERCENTAGE));
+  };
 
   const handleBookFromDetails = () => {
     setShowDetailsModal(false);
@@ -102,6 +133,29 @@ export const CaptainCard = ({ captain }: CaptainCardProps) => {
               <p className="text-sm text-muted-foreground line-clamp-2">{captain.bio}</p>
             </div>
           )}
+
+          {/* Course Prices */}
+          {coursePrices.length > 0 && (
+            <div className="pt-2 border-t border-border/50 space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <GraduationCap className="h-4 w-4 text-primary" />
+                <span>أسعار الكورسات:</span>
+              </div>
+              <div className="grid gap-1.5">
+                {coursePrices.map((price) => {
+                  const config = COURSE_CONFIG[price.course_type];
+                  if (!config || price.session_price <= 0) return null;
+                  const totalPrice = calculateCourseTotal(price.session_price, config.sessions);
+                  return (
+                    <div key={price.course_type} className="flex justify-between text-xs bg-muted/50 px-2 py-1.5 rounded">
+                      <span>{config.name} ({config.sessions} حصص)</span>
+                      <span className="font-bold text-primary">{totalPrice} ج</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </CardContent>
 
         <CardFooter className="pt-0 gap-2">
@@ -124,12 +178,14 @@ export const CaptainCard = ({ captain }: CaptainCardProps) => {
         open={showDetailsModal}
         onClose={() => setShowDetailsModal(false)}
         onBook={handleBookFromDetails}
+        coursePrices={coursePrices}
       />
 
       <BookingModal
         captain={captain}
         open={showBookingModal}
         onClose={() => setShowBookingModal(false)}
+        coursePrices={coursePrices}
       />
     </>
   );

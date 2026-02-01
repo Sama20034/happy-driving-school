@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, Car, MapPin, Clock, User, Image } from "lucide-react";
+import { Star, Car, MapPin, Clock, User, Image, GraduationCap } from "lucide-react";
 
 interface Captain {
   id: string;
@@ -22,14 +22,31 @@ interface Captain {
   total_sessions: number;
 }
 
+interface CoursePrice {
+  course_type: string;
+  session_price: number;
+}
+
+const COURSE_CONFIG: Record<string, { name: string; sessions: number }> = {
+  practice: { name: "كورس الممارسة", sessions: 6 },
+  beginner: { name: "كورس المبتدئين", sessions: 8 },
+  professional: { name: "كورس الاحتراف", sessions: 10 }
+};
+
+const DISCOUNT_PERCENTAGE = 0.05;
+
 interface CaptainDetailsModalProps {
   captain: Captain;
   open: boolean;
   onClose: () => void;
   onBook: () => void;
+  coursePrices?: CoursePrice[];
 }
 
-export const CaptainDetailsModal = ({ captain, open, onClose, onBook }: CaptainDetailsModalProps) => {
+export const CaptainDetailsModal = ({ captain, open, onClose, onBook, coursePrices = [] }: CaptainDetailsModalProps) => {
+  const calculateCourseTotal = (sessionPrice: number, sessions: number) => {
+    return Math.round(sessionPrice * sessions * (1 - DISCOUNT_PERCENTAGE));
+  };
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -88,11 +105,41 @@ export const CaptainDetailsModal = ({ captain, open, onClose, onBook }: CaptainD
 
             <div className="flex items-center gap-3">
               <Clock className="h-5 w-5 text-primary" />
-              <span className="font-medium">السعر:</span>
-              <span className="text-primary font-bold">{captain.hourly_rate} جنيه / ساعة</span>
+              <span className="font-medium">سعر الساعة:</span>
+              <span className="text-primary font-bold">{captain.hourly_rate} جنيه</span>
             </div>
 
           </div>
+
+          {/* Course Prices */}
+          {coursePrices.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="font-semibold flex items-center gap-2">
+                <GraduationCap className="h-5 w-5" />
+                أسعار الكورسات (خصم 5%)
+              </h4>
+              <div className="grid gap-2">
+                {coursePrices.map((price) => {
+                  const config = COURSE_CONFIG[price.course_type];
+                  if (!config || price.session_price <= 0) return null;
+                  const totalPrice = calculateCourseTotal(price.session_price, config.sessions);
+                  const originalPrice = price.session_price * config.sessions;
+                  return (
+                    <div key={price.course_type} className="flex justify-between items-center bg-muted/50 px-3 py-2 rounded-lg">
+                      <div>
+                        <span className="font-medium">{config.name}</span>
+                        <span className="text-muted-foreground text-sm mr-2">({config.sessions} حصص)</span>
+                      </div>
+                      <div className="text-left">
+                        <span className="line-through text-muted-foreground text-sm ml-2">{originalPrice} ج</span>
+                        <span className="font-bold text-primary">{totalPrice} ج</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Bio */}
           {captain.bio && (

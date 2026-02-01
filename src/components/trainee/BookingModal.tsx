@@ -39,31 +39,36 @@ interface Schedule {
   is_active: boolean;
 }
 
-interface Course {
-  id: string;
-  title: string;
-  sessions: number;
-  price: number;
+interface CoursePrice {
+  course_type: string;
+  session_price: number;
 }
 
 interface BookingModalProps {
   captain: Captain;
   open: boolean;
   onClose: () => void;
+  coursePrices?: CoursePrice[];
 }
 
 const MIN_SESSION_DEPOSIT = 300; // الحد الأدنى للديبوزيت للحصة
 const COURSE_DEPOSIT_PERCENTAGE = 0.30; // 30% للكورس
+const DISCOUNT_PERCENTAGE = 0.05; // 5% خصم على الكورسات
 
-export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
+const CAPTAIN_COURSE_CONFIG: Record<string, { name: string; sessions: number }> = {
+  practice: { name: "كورس الممارسة", sessions: 6 },
+  beginner: { name: "كورس المبتدئين", sessions: 8 },
+  professional: { name: "كورس الاحتراف", sessions: 10 }
+};
+
+export const BookingModal = ({ captain, open, onClose, coursePrices = [] }: BookingModalProps) => {
   const { user } = useAuth();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [bookingType, setBookingType] = useState<"session" | "course">("session");
-  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [selectedCourseType, setSelectedCourseType] = useState<string>("");
   const [formData, setFormData] = useState({
     trainee_name: "",
     trainee_phone: "",
@@ -81,26 +86,27 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Calculate total price and deposit based on booking type
-  const selectedCourse = courses.find(c => c.id === selectedCourseId);
-  const totalPrice = bookingType === "course" && selectedCourse 
-    ? selectedCourse.price 
+  const selectedCaptainCourse = coursePrices.find(c => c.course_type === selectedCourseType);
+  const selectedCourseConfig = selectedCourseType ? CAPTAIN_COURSE_CONFIG[selectedCourseType] : null;
+  
+  const totalPrice = bookingType === "course" && selectedCaptainCourse && selectedCourseConfig
+    ? Math.round(selectedCaptainCourse.session_price * selectedCourseConfig.sessions * (1 - DISCOUNT_PERCENTAGE))
     : captain.hourly_rate;
   
-  const depositAmount = bookingType === "course" && selectedCourse
-    ? Math.round(selectedCourse.price * COURSE_DEPOSIT_PERCENTAGE) // 30% للكورس
+  const depositAmount = bookingType === "course" && selectedCaptainCourse && selectedCourseConfig
+    ? Math.round(totalPrice * COURSE_DEPOSIT_PERCENTAGE) // 30% للكورس
     : Math.max(MIN_SESSION_DEPOSIT, Math.round(captain.hourly_rate * 0.5)); // الحد الأدنى 300 للحصة
 
   useEffect(() => {
     if (open) {
       fetchSchedules();
       fetchBookedSlots();
-      fetchCourses();
       // Reset states when modal opens
       setStep("booking");
       setDepositImage(null);
       setDepositImagePreview(null);
       setBookingType("session");
-      setSelectedCourseId("");
+      setSelectedCourseType("");
     }
     
     // Cleanup object URL to prevent memory leak
@@ -136,14 +142,6 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
       .eq("captain_id", captain.id)
       .eq("is_active", true);
     if (data) setSchedules(data);
-  };
-
-  const fetchCourses = async () => {
-    const { data } = await supabase
-      .from("courses")
-      .select("id, title, sessions, price")
-      .order("price");
-    if (data) setCourses(data);
   };
 
   const fetchBookedSlots = async () => {
@@ -212,7 +210,7 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
       toast.error("يرجى اختيار التاريخ والوقت");
       return;
     }
-    if (bookingType === "course" && !selectedCourseId) {
+    if (bookingType === "course" && !selectedCourseType) {
       toast.error("يرجى اختيار الكورس");
       return;
     }
@@ -253,7 +251,9 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
         .getPublicUrl(fileName);
 
       // Create booking with deposit info
-      const bookingNotes = `${bookingType === "course" && selectedCourse ? `كورس: ${selectedCourse.title} (${selectedCourse.sessions} حصص)` : "حصة واحدة"}${formData.notes ? ` - ${formData.notes}` : ""}`;
+      const courseName = selectedCourseConfig ? selectedCourseConfig.name : "";
+      const courseSessions = selectedCourseConfig ? selectedCourseConfig.sessions : 0;
+      const bookingNotes = `${bookingType === "course" && selectedCourseConfig ? `كورس: ${courseName} (${courseSessions} حصص)` : "حصة واحدة"}${formData.notes ? ` - ${formData.notes}` : ""}`;
       
       const { data: booking, error: bookingError } = await supabase
         .from("captain_bookings")
@@ -262,8 +262,8 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
           trainee_id: user.id,
           booking_date: format(selectedDate, "yyyy-MM-dd"),
           booking_time: selectedTime,
-          duration_minutes: bookingType === "course" && selectedCourse 
-            ? selectedCourse.sessions * 60 
+          duration_minutes: bookingType === "course" && selectedCourseConfig 
+            ? selectedCourseConfig.sessions * 60 
             : 60,
           total_price: totalPrice,
           trainee_name: formData.trainee_name,
@@ -280,8 +280,8 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
       if (bookingError) throw bookingError;
 
       // Create notification for captain
-      const bookingTypeText = bookingType === "course" && selectedCourse 
-        ? `كورس ${selectedCourse.title}` 
+      const bookingTypeText = bookingType === "course" && selectedCourseConfig 
+        ? `كورس ${courseName}` 
         : "حصة";
       await supabase.from("notifications").insert({
         user_id: captain.user_id,
@@ -323,7 +323,7 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
                 value={bookingType}
                 onValueChange={(value) => {
                   setBookingType(value as "session" | "course");
-                  if (value === "session") setSelectedCourseId("");
+                  if (value === "session") setSelectedCourseType("");
                 }}
                 className="grid grid-cols-2 gap-4"
               >
@@ -334,28 +334,33 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 space-x-reverse">
-                  <RadioGroupItem value="course" id="course" />
+                  <RadioGroupItem value="course" id="course" disabled={coursePrices.length === 0} />
                   <Label htmlFor="course" className="cursor-pointer">
-                    كورس كامل
+                    كورس كامل {coursePrices.length === 0 && "(غير متاح)"}
                   </Label>
                 </div>
               </RadioGroup>
             </div>
 
             {/* Course Selection - Only for course booking */}
-            {bookingType === "course" && (
+            {bookingType === "course" && coursePrices.length > 0 && (
               <div className="space-y-2">
                 <Label>اختر الكورس</Label>
-                <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                <Select value={selectedCourseType} onValueChange={setSelectedCourseType}>
                   <SelectTrigger>
                     <SelectValue placeholder="اختر الكورس" />
                   </SelectTrigger>
                   <SelectContent>
-                    {courses.map((course) => (
-                      <SelectItem key={course.id} value={course.id}>
-                        {course.title} - {course.sessions} حصص - {course.price} جنيه
-                      </SelectItem>
-                    ))}
+                    {coursePrices.map((price) => {
+                      const config = CAPTAIN_COURSE_CONFIG[price.course_type];
+                      if (!config || price.session_price <= 0) return null;
+                      const totalCoursePrice = Math.round(price.session_price * config.sessions * (1 - DISCOUNT_PERCENTAGE));
+                      return (
+                        <SelectItem key={price.course_type} value={price.course_type}>
+                          {config.name} - {config.sessions} حصص - {totalCoursePrice} جنيه
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
@@ -438,10 +443,16 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
                 <span>السعر الإجمالي:</span>
                 <span className="font-bold text-lg">{totalPrice} جنيه</span>
               </div>
-              {bookingType === "course" && selectedCourse && (
+              {bookingType === "course" && selectedCourseConfig && (
                 <div className="flex justify-between items-center text-sm text-muted-foreground">
                   <span>عدد الحصص:</span>
-                  <span>{selectedCourse.sessions} حصص</span>
+                  <span>{selectedCourseConfig.sessions} حصص</span>
+                </div>
+              )}
+              {bookingType === "course" && selectedCaptainCourse && selectedCourseConfig && (
+                <div className="flex justify-between items-center text-sm text-green-600">
+                  <span>خصم 5%:</span>
+                  <span>توفير {Math.round(selectedCaptainCourse.session_price * selectedCourseConfig.sessions * DISCOUNT_PERCENTAGE)} جنيه</span>
                 </div>
               )}
               <div className="flex justify-between items-center text-primary">
@@ -461,7 +472,7 @@ export const BookingModal = ({ captain, open, onClose }: BookingModalProps) => {
             <Button
               className="w-full"
               onClick={proceedToPayment}
-              disabled={!selectedDate || !selectedTime || (bookingType === "course" && !selectedCourseId)}
+              disabled={!selectedDate || !selectedTime || (bookingType === "course" && !selectedCourseType)}
             >
               متابعة للدفع
             </Button>
