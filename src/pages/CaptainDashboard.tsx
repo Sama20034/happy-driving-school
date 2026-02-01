@@ -120,7 +120,14 @@ const CaptainDashboard = () => {
     try {
       const profileData = {
         user_id: user.id,
-        ...formData,
+        full_name: formData.full_name,
+        phone: formData.phone,
+        governorate_id: formData.governorate_id || null,
+        car_type: formData.car_type,
+        transmission_type: formData.transmission_type || null, // Send null if empty
+        hourly_rate: formData.hourly_rate,
+        bio: formData.bio,
+        is_available: formData.is_available,
       };
 
       if (profile) {
