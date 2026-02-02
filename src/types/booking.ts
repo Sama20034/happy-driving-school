@@ -1,3 +1,5 @@
+export type VehicleType = "car" | "motorcycle" | "heavy_transport" | "";
+
 export interface BookingData {
   countryId: string;
   countryName: string;
@@ -5,6 +7,7 @@ export interface BookingData {
   governorateName: string;
   branchId: string;
   branchName: string;
+  vehicleType: VehicleType;
   transmissionType: "manual" | "automatic" | "";
   courseId: string;
   courseName: string;
@@ -26,6 +29,7 @@ export const initialBookingData: BookingData = {
   governorateName: "",
   branchId: "",
   branchName: "",
+  vehicleType: "",
   transmissionType: "",
   courseId: "",
   courseName: "",

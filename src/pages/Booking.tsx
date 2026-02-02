@@ -10,14 +10,15 @@ import BookingStepper from "@/components/booking/BookingStepper";
 import CountryStep from "@/components/booking/CountryStep";
 import GovernorateStep from "@/components/booking/GovernorateStep";
 import BranchStep from "@/components/booking/BranchStep";
+import VehicleTypeStep from "@/components/booking/VehicleTypeStep";
 import TransmissionStep from "@/components/booking/TransmissionStep";
 import CourseStep from "@/components/booking/CourseStep";
 import CaptainStep from "@/components/booking/CaptainStep";
 import CheckoutStep from "@/components/booking/CheckoutStep";
-import { BookingData, initialBookingData } from "@/types/booking";
+import { BookingData, initialBookingData, VehicleType } from "@/types/booking";
 import { toast } from "sonner";
 
-const steps = ["الدولة", "المحافظة", "الفرع", "نوع القير", "الكورس", "الكابتن", "الدفع"];
+const steps = ["الدولة", "المحافظة", "الفرع", "نوع المركبة", "نوع القير", "الكورس", "الكابتن", "الدفع"];
 
 const Booking = () => {
   const navigate = useNavigate();
@@ -40,10 +41,12 @@ const Booking = () => {
         case 2:
           return !!bookingData.branchId;
         case 3:
-          return !!bookingData.transmissionType;
+          return !!bookingData.vehicleType;
         case 4:
-          return !!bookingData.courseId;
+          return !!bookingData.transmissionType;
         case 5:
+          return !!bookingData.courseId;
+        case 6:
           return !!bookingData.captainId;
         default:
           return false;
@@ -104,11 +107,20 @@ const Booking = () => {
             governorateId={bookingData.governorateId}
             selectedId={bookingData.branchId}
             onSelect={(id, name) =>
-              setBookingData({ ...bookingData, branchId: id, branchName: name, transmissionType: "", captainId: "", captainName: "" })
+              setBookingData({ ...bookingData, branchId: id, branchName: name, vehicleType: "", transmissionType: "", captainId: "", captainName: "" })
             }
           />
         );
       case 3:
+        return (
+          <VehicleTypeStep
+            selectedType={bookingData.vehicleType}
+            onSelect={(type) =>
+              setBookingData({ ...bookingData, vehicleType: type, transmissionType: "", courseId: "", courseName: "", coursePrice: 0, courseSessions: 0 })
+            }
+          />
+        );
+      case 4:
         return (
           <TransmissionStep
             selectedType={bookingData.transmissionType}
@@ -117,7 +129,7 @@ const Booking = () => {
             }
           />
         );
-      case 4:
+      case 5:
         return (
           <CourseStep
             governorateId={bookingData.governorateId}
@@ -134,7 +146,7 @@ const Booking = () => {
             }
           />
         );
-      case 5:
+      case 6:
         return (
           <CaptainStep
             branchId={bookingData.branchId}
@@ -144,7 +156,7 @@ const Booking = () => {
             }
           />
         );
-      case 6:
+      case 7:
         return (
           <CheckoutStep
             bookingData={bookingData}
@@ -180,7 +192,7 @@ const Booking = () => {
           </div>
 
           {/* Back Button Only */}
-          {currentStep > 0 && currentStep < 6 && (
+          {currentStep > 0 && currentStep < 7 && (
             <div className="max-w-5xl mx-auto mt-8 flex items-center justify-end">
               <Button
                 variant="outline"
