@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Star, Car, MapPin, Clock, User, Search, X, ChevronLeft } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Link } from "react-router-dom";
+import { BookingModal } from "@/components/trainee/BookingModal";
 
 interface Captain {
   id: string;
@@ -41,6 +41,8 @@ const CaptainsPage = () => {
   const [selectedCaptain, setSelectedCaptain] = useState<Captain | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImage, setModalImage] = useState<string>("");
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [captainToBook, setCaptainToBook] = useState<Captain | null>(null);
 
   useEffect(() => {
     fetchGovernorates();
@@ -483,11 +485,16 @@ const CaptainsPage = () => {
                 )}
 
                 {/* Book Button */}
-                <Button className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-base font-medium" asChild>
-                  <Link to="/booking">
-                    احجز جلسة تدريبية الآن
-                    <ChevronLeft className="w-5 h-5 mr-2" />
-                  </Link>
+                <Button 
+                  className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-base font-medium"
+                  onClick={() => {
+                    setCaptainToBook(selectedCaptain);
+                    setSelectedCaptain(null);
+                    setShowBookingModal(true);
+                  }}
+                >
+                  احجز جلسة تدريبية الآن
+                  <ChevronLeft className="w-5 h-5 mr-2" />
                 </Button>
               </div>
             </>
@@ -511,6 +518,23 @@ const CaptainsPage = () => {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Booking Modal */}
+      {captainToBook && (
+        <BookingModal
+          captain={{
+            id: captainToBook.id,
+            user_id: captainToBook.user_id,
+            full_name: captainToBook.full_name,
+            hourly_rate: captainToBook.hourly_rate
+          }}
+          open={showBookingModal}
+          onClose={() => {
+            setShowBookingModal(false);
+            setCaptainToBook(null);
+          }}
+        />
+      )}
 
       <Footer />
     </div>
