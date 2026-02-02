@@ -85,15 +85,15 @@ const InstallPrompt = () => {
     };
   }, []);
 
-  // Only show the banner when install prompt is actually available (Chrome/Android)
-  // or when we're on iOS (manual Add to Home Screen flow).
+  // Show the banner when delay has elapsed on ALL devices
+  // iOS: manual Add to Home Screen instructions
+  // Android/Chrome: native prompt or manual instructions
   useEffect(() => {
     if (isInstalled) return;
     if (!delayElapsed) return;
-    if (isIOS || deferredPrompt) {
-      setShowPrompt(true);
-    }
-  }, [delayElapsed, deferredPrompt, isIOS, isInstalled]);
+    // Always show prompt after delay - works on all devices
+    setShowPrompt(true);
+  }, [delayElapsed, isInstalled]);
 
   const handleOpenInstallModal = () => {
     setShowInstallModal(true);
