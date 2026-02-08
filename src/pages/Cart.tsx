@@ -8,12 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, Package, MessageCircle, Wallet, Copy, Check, Truck } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, Package, MessageCircle, Wallet, Copy, Check, Truck, Loader2 } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const Cart = () => {
+  const { user } = useAuth();
   const { items, updateQuantity, removeItem, clearCart, getTotalPrice } = useCart();
   const [formData, setFormData] = useState({
     name: "",
@@ -23,12 +26,13 @@ const Cart = () => {
   });
   const [paymentMethod, setPaymentMethod] = useState<"wallet" | "whatsapp" | "cod">("wallet");
   const [copiedNumber, setCopiedNumber] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const WHATSAPP_NUMBER = "201515160511";
-  const INSTAPAY_NUMBER = "01220501299";
-  const INSTAPAY_NAME = "safia";
-  const WALLET_NUMBER = "01287871212";
-  const WALLET_NAME = "صفية احمد";
+  const INSTAPAY_NUMBER = "01229109991";
+  const INSTAPAY_NAME = "كابتن مصر";
+  const WALLET_NUMBER = "01229109991";
+  const WALLET_NAME = "كابتن مصر";
 
   const handleCopyNumber = (number: string) => {
     navigator.clipboard.writeText(number);
@@ -37,7 +41,59 @@ const Cart = () => {
     setTimeout(() => setCopiedNumber(null), 2000);
   };
 
-  const handleWhatsAppOrder = (isPaid: boolean = false, isCOD: boolean = false) => {
+  const saveOrderToDatabase = async () => {
+    if (!user) {
+      toast.error("يجب تسجيل الدخول أولاً لإتمام الطلب");
+      return null;
+    }
+
+    try {
+      // Create the order
+      const { data: orderData, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          user_id: user.id,
+          customer_name: formData.name,
+          customer_phone: formData.phone,
+          customer_address: formData.address,
+          customer_notes: formData.notes || null,
+          total_amount: getTotalPrice(),
+          status: "pending"
+        })
+        .select()
+        .single();
+
+      if (orderError) {
+        console.error("Order error:", orderError);
+        throw orderError;
+      }
+
+      // Create order items
+      const orderItems = items.map(item => ({
+        order_id: orderData.id,
+        product_id: item.id,
+        product_name: item.name,
+        quantity: item.quantity,
+        unit_price: item.price
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .insert(orderItems);
+
+      if (itemsError) {
+        console.error("Order items error:", itemsError);
+        throw itemsError;
+      }
+
+      return orderData;
+    } catch (error) {
+      console.error("Failed to save order:", error);
+      return null;
+    }
+  };
+
+  const handleWhatsAppOrder = async (isPaid: boolean = false, isCOD: boolean = false) => {
     if (items.length === 0) {
       toast.error("السلة فارغة");
       return;
@@ -45,6 +101,17 @@ const Cart = () => {
 
     if (!formData.name || !formData.phone || !formData.address) {
       toast.error("يرجى ملء جميع البيانات المطلوبة");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Save order to database first
+    const savedOrder = await saveOrderToDatabase();
+    
+    if (!savedOrder && user) {
+      setIsSubmitting(false);
+      toast.error("حدث خطأ أثناء حفظ الطلب");
       return;
     }
 
@@ -59,7 +126,9 @@ const Cart = () => {
         ? "💵 *الدفع عند الاستلام*"
         : "💳 *في انتظار التأكيد*";
 
-    const message = `🛒 *طلب جديد من المتجر*
+    const orderIdText = savedOrder ? `\n📋 *رقم الطلب:* #${savedOrder.id.slice(0, 8)}` : "";
+
+    const message = `🛒 *طلب جديد من المتجر*${orderIdText}
 
 👤 *بيانات العميل:*
 الاسم: ${formData.name}
@@ -78,17 +147,21 @@ ${paymentStatus}`;
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
     
     window.open(whatsappUrl, "_blank");
-    toast.success("تم فتح واتساب لإتمام الطلب");
+    
+    // Clear cart after successful order
+    clearCart();
+    toast.success("تم إرسال الطلب بنجاح!");
+    setIsSubmitting(false);
   };
 
-  const handleSubmitOrder = (e: React.FormEvent) => {
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (paymentMethod === "wallet") {
-      handleWhatsAppOrder(true, false);
+      await handleWhatsAppOrder(true, false);
     } else if (paymentMethod === "cod") {
-      handleWhatsAppOrder(false, true);
+      await handleWhatsAppOrder(false, true);
     } else {
-      handleWhatsAppOrder(false, false);
+      await handleWhatsAppOrder(false, false);
     }
   };
 
@@ -424,8 +497,14 @@ ${paymentStatus}`;
                       type="submit"
                       className={`w-full ${paymentMethod === "cod" ? "bg-orange-600 hover:bg-orange-700" : "bg-green-600 hover:bg-green-700"}`}
                       size="lg"
+                      disabled={isSubmitting}
                     >
-                      {paymentMethod === "cod" ? (
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                          جاري إرسال الطلب...
+                        </>
+                      ) : paymentMethod === "cod" ? (
                         <>
                           <Truck className="ml-2 h-5 w-5" />
                           تأكيد الطلب - الدفع عند الاستلام
