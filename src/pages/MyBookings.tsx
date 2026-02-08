@@ -124,7 +124,7 @@ const MyBookings = () => {
   return (
     <>
       <Helmet>
-        <title>حجوزاتي | دينا أحمد</title>
+        <title>حجوزاتي | كابتن مصر</title>
         <meta name="description" content="عرض حجوزاتك السابقة والحالية" />
       </Helmet>
 

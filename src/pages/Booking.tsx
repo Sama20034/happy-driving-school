@@ -174,7 +174,7 @@ const Booking = () => {
   return (
     <>
       <Helmet>
-        <title>احجز كورسك الآن | دينا أحمد - Defensive Driving</title>
+        <title>احجز كورسك الآن | كابتن مصر لتعليم قيادة السيارات</title>
         <meta name="description" content="احجز كورس تعليم السواقة الآن - اختر المحافظة والفرع والكابتن المناسب لك" />
       </Helmet>
 
