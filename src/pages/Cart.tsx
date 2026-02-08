@@ -24,7 +24,7 @@ const Cart = () => {
   const [paymentMethod, setPaymentMethod] = useState<"wallet" | "whatsapp" | "cod">("wallet");
   const [copiedNumber, setCopiedNumber] = useState<string | null>(null);
 
-  const WHATSAPP_NUMBER = "201220501299";
+  const WHATSAPP_NUMBER = "201515160511";
   const INSTAPAY_NUMBER = "01220501299";
   const INSTAPAY_NAME = "safia";
   const WALLET_NUMBER = "01287871212";
