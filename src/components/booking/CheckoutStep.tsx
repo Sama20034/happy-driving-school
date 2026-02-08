@@ -18,11 +18,11 @@ interface CheckoutStepProps {
   onConfirm: () => void;
 }
 
-const WHATSAPP_NUMBER = "201220501299";
-const INSTAPAY_NUMBER = "01220501299";
-const INSTAPAY_NAME = "safia";
-const WALLET_NUMBER = "01287871212";
-const WALLET_NAME = "صفية احمد";
+const WHATSAPP_NUMBER = "201515160511";
+const INSTAPAY_NUMBER = "01229109991";
+const INSTAPAY_NAME = "كابتن مصر";
+const WALLET_NUMBER = "01229109991";
+const WALLET_NAME = "كابتن مصر";
 
 const CheckoutStep = ({ bookingData, onUpdateCustomer, onConfirm }: CheckoutStepProps) => {
   const { user } = useAuth();
