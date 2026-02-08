@@ -1,18 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { Plus, Pencil, Trash2, Star, Upload, Loader2 } from "lucide-react";
+import { Star, Eye, Trash2, MapPin, Car, Phone, Check, X, Loader2, UserCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { uploadImage } from "@/lib/uploadImage";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -23,246 +22,135 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-interface Captain {
+interface CaptainProfile {
   id: string;
-  name: string;
-  image_url: string | null;
+  user_id: string;
+  full_name: string;
+  phone: string | null;
+  governorate_id: string | null;
+  car_type: string | null;
+  transmission_type: string | null;
+  car_photo_url: string | null;
+  personal_photo_url: string | null;
+  hourly_rate: number;
+  bio: string | null;
+  is_available: boolean;
   rating: number | null;
-  branch_id: string;
-  branches: { 
-    name: string; 
-    governorates: { 
-      name: string;
-      countries: { name: string } | null;
-    } | null 
-  } | null;
+  total_sessions: number | null;
   created_at: string;
-}
-
-interface Country {
-  id: string;
-  name: string;
-}
-
-interface Governorate {
-  id: string;
-  name: string;
-  country_id: string | null;
-}
-
-interface Branch {
-  id: string;
-  name: string;
-  governorate_id: string;
-  governorates: { name: string; country_id: string | null } | null;
+  governorates?: { name: string } | null;
 }
 
 const Captains = () => {
-  const [captains, setCaptains] = useState<Captain[]>([]);
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [governorates, setGovernorates] = useState<Governorate[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [filteredGovernorates, setFilteredGovernorates] = useState<Governorate[]>([]);
-  const [filteredBranches, setFilteredBranches] = useState<Branch[]>([]);
+  const [captains, setCaptains] = useState<CaptainProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const [formData, setFormData] = useState({
-    name: "",
-    image_url: "",
-    rating: 5,
-    country_id: "",
-    governorate_id: "",
-    branch_id: "",
-  });
+  const [selectedCaptain, setSelectedCaptain] = useState<CaptainProfile | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const fetchData = async () => {
-    const [captainsRes, countriesRes, governoratesRes, branchesRes] = await Promise.all([
-      supabase
-        .from("captains")
-        .select("*, branches(name, governorates(name, countries(name)))")
-        .order("name"),
-      supabase
-        .from("countries")
-        .select("id, name")
-        .order("name"),
-      supabase
-        .from("governorates")
-        .select("id, name, country_id")
-        .order("name"),
-      supabase
-        .from("branches")
-        .select("id, name, governorate_id, governorates(name, country_id)")
-        .order("name"),
-    ]);
+  const fetchCaptains = async () => {
+    setLoading(true);
+    
+    // Get approved captains from captain_profiles
+    const { data, error } = await supabase
+      .from("captain_profiles")
+      .select(`
+        *,
+        governorates (name)
+      `)
+      .order("created_at", { ascending: false });
 
-    if (captainsRes.error) toast.error("خطأ في تحميل الكباتن");
-    else setCaptains(captainsRes.data || []);
-
-    if (countriesRes.error) toast.error("خطأ في تحميل الدول");
-    else setCountries(countriesRes.data || []);
-
-    if (governoratesRes.error) toast.error("خطأ في تحميل المحافظات");
-    else setGovernorates(governoratesRes.data || []);
-
-    if (branchesRes.error) toast.error("خطأ في تحميل الفروع");
-    else setBranches(branchesRes.data || []);
-
+    if (error) {
+      console.error("Error fetching captains:", error);
+      toast.error("خطأ في تحميل الكباتن");
+    } else {
+      setCaptains(data || []);
+    }
+    
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchData();
+    fetchCaptains();
   }, []);
 
-  // Filter governorates when country changes
-  useEffect(() => {
-    if (formData.country_id) {
-      const filtered = governorates.filter(g => g.country_id === formData.country_id);
-      setFilteredGovernorates(filtered);
-    } else {
-      setFilteredGovernorates([]);
-    }
-    // Reset governorate and branch when country changes
-    if (!editingId) {
-      setFormData(prev => ({ ...prev, governorate_id: "", branch_id: "" }));
-      setFilteredBranches([]);
-    }
-  }, [formData.country_id, governorates]);
-
-  // Filter branches when governorate changes
-  useEffect(() => {
-    if (formData.governorate_id) {
-      const filtered = branches.filter(b => b.governorate_id === formData.governorate_id);
-      setFilteredBranches(filtered);
-    } else {
-      setFilteredBranches([]);
-    }
-    // Reset branch when governorate changes
-    if (!editingId) {
-      setFormData(prev => ({ ...prev, branch_id: "" }));
-    }
-  }, [formData.governorate_id, branches]);
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("يرجى اختيار صورة صالحة");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("حجم الصورة يجب أن يكون أقل من 5 ميجابايت");
-      return;
-    }
-
-    setUploading(true);
-
+  const handleDeleteCaptain = async () => {
+    if (!deletingId) return;
+    
+    setActionLoading(true);
+    
     try {
-      const result = await uploadImage(file);
+      // Get the captain's user_id first
+      const captain = captains.find(c => c.id === deletingId);
+      if (!captain) throw new Error("Captain not found");
 
-      if (result.success && result.url) {
-        setFormData({ ...formData, image_url: result.url });
-        setImagePreview(result.url);
-        toast.success("تم رفع الصورة بنجاح");
-      } else {
-        throw new Error(result.error || "فشل في رفع الصورة");
+      // Delete captain profile (this will cascade delete related data)
+      const { error: profileError } = await supabase
+        .from("captain_profiles")
+        .delete()
+        .eq("id", deletingId);
+
+      if (profileError) throw profileError;
+
+      // Update user role to trainee instead of captain
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .update({ role: "trainee" })
+        .eq("user_id", captain.user_id);
+
+      if (roleError) {
+        console.error("Error updating role:", roleError);
       }
+
+      // Update profile approval status
+      const { error: approvalError } = await supabase
+        .from("profiles")
+        .update({ 
+          is_approved: false, 
+          approval_status: "rejected",
+          rejection_reason: "تم إزالة الكابتن من النظام"
+        })
+        .eq("user_id", captain.user_id);
+
+      if (approvalError) {
+        console.error("Error updating profile:", approvalError);
+      }
+
+      toast.success("تم حذف الكابتن بنجاح");
+      setShowDeleteConfirm(false);
+      setDeletingId(null);
+      fetchCaptains();
     } catch (error: any) {
-      console.error("Upload error:", error);
-      toast.error(error.message || "خطأ في رفع الصورة");
+      console.error("Error deleting captain:", error);
+      toast.error("حدث خطأ أثناء حذف الكابتن");
     } finally {
-      setUploading(false);
+      setActionLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const toggleAvailability = async (captain: CaptainProfile) => {
+    const { error } = await supabase
+      .from("captain_profiles")
+      .update({ is_available: !captain.is_available })
+      .eq("id", captain.id);
 
-    const payload = {
-      name: formData.name,
-      image_url: formData.image_url || null,
-      rating: formData.rating,
-      branch_id: formData.branch_id,
-    };
-
-    if (editingId) {
-      const { error } = await supabase
-        .from("captains")
-        .update(payload)
-        .eq("id", editingId);
-
-      if (error) toast.error("خطأ في التحديث");
-      else toast.success("تم التحديث بنجاح");
+    if (error) {
+      toast.error("خطأ في تحديث الحالة");
     } else {
-      const { error } = await supabase.from("captains").insert(payload);
-
-      if (error) toast.error("خطأ في الإضافة");
-      else toast.success("تمت الإضافة بنجاح");
-    }
-
-    setIsOpen(false);
-    resetForm();
-    fetchData();
-  };
-
-  const resetForm = () => {
-    setFormData({ name: "", image_url: "", rating: 5, country_id: "", governorate_id: "", branch_id: "" });
-    setEditingId(null);
-    setImagePreview(null);
-    setFilteredGovernorates([]);
-    setFilteredBranches([]);
-  };
-
-  const handleEdit = (captain: Captain) => {
-    // Find the branch to get governorate and country
-    const branch = branches.find(b => b.id === captain.branch_id);
-    const governorate = governorates.find(g => g.id === branch?.governorate_id);
-    
-    setEditingId(captain.id);
-    setFormData({
-      name: captain.name,
-      image_url: captain.image_url || "",
-      rating: captain.rating || 5,
-      country_id: governorate?.country_id || "",
-      governorate_id: branch?.governorate_id || "",
-      branch_id: captain.branch_id,
-    });
-    setImagePreview(captain.image_url);
-    
-    // Set filtered lists for editing
-    if (governorate?.country_id) {
-      setFilteredGovernorates(governorates.filter(g => g.country_id === governorate.country_id));
-    }
-    if (branch?.governorate_id) {
-      setFilteredBranches(branches.filter(b => b.governorate_id === branch.governorate_id));
-    }
-    
-    setIsOpen(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("هل أنت متأكد من الحذف؟")) return;
-
-    const { error } = await supabase.from("captains").delete().eq("id", id);
-
-    if (error) toast.error("خطأ في الحذف");
-    else {
-      toast.success("تم الحذف بنجاح");
-      fetchData();
+      toast.success(captain.is_available ? "تم إيقاف الكابتن" : "تم تفعيل الكابتن");
+      fetchCaptains();
     }
   };
 
@@ -276,189 +164,37 @@ const Captains = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">إدارة الكباتن</h1>
-            <p className="text-muted-foreground">إضافة وتعديل الكباتن</p>
+            <p className="text-muted-foreground">
+              عرض وإدارة الكباتن المسجلين
+              <span className="mr-2 text-primary font-semibold">
+                ({captains.length} كابتن)
+              </span>
+            </p>
           </div>
-
-          <Dialog open={isOpen} onOpenChange={(open) => {
-            setIsOpen(open);
-            if (!open) resetForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button className="gradient-primary">
-                <Plus className="ml-2 h-4 w-4" />
-                إضافة كابتن
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingId ? "تعديل الكابتن" : "إضافة كابتن جديد"}
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Country Selection */}
-                <div className="space-y-2">
-                  <Label>الدولة</Label>
-                  <Select
-                    value={formData.country_id}
-                    onValueChange={(val) =>
-                      setFormData({ ...formData, country_id: val, governorate_id: "", branch_id: "" })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر الدولة" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {countries.map((country) => (
-                        <SelectItem key={country.id} value={country.id}>
-                          {country.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Governorate Selection */}
-                <div className="space-y-2">
-                  <Label>المحافظة</Label>
-                  <Select
-                    value={formData.governorate_id}
-                    onValueChange={(val) =>
-                      setFormData({ ...formData, governorate_id: val, branch_id: "" })
-                    }
-                    disabled={!formData.country_id}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={formData.country_id ? "اختر المحافظة" : "اختر الدولة أولاً"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredGovernorates.map((gov) => (
-                        <SelectItem key={gov.id} value={gov.id}>
-                          {gov.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Branch Selection */}
-                <div className="space-y-2">
-                  <Label>الفرع</Label>
-                  <Select
-                    value={formData.branch_id}
-                    onValueChange={(val) =>
-                      setFormData({ ...formData, branch_id: val })
-                    }
-                    disabled={!formData.governorate_id}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={formData.governorate_id ? "اختر الفرع" : "اختر المحافظة أولاً"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredBranches.map((branch) => (
-                        <SelectItem key={branch.id} value={branch.id}>
-                          {branch.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="name">اسم الكابتن</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    placeholder="أدخل اسم الكابتن"
-                    required
-                  />
-                </div>
-                
-                {/* Image Upload */}
-                <div className="space-y-2">
-                  <Label>صورة الكابتن</Label>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                  
-                  <div className="flex items-center gap-4">
-                    {imagePreview ? (
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-20 h-20 rounded-full object-cover border-2 border-border"
-                      />
-                    ) : (
-                      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border-2 border-dashed border-border">
-                        <Upload className="h-6 w-6 text-muted-foreground" />
-                      </div>
-                    )}
-                    
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                    >
-                      {uploading ? (
-                        <>
-                          <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                          جاري الرفع...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="ml-2 h-4 w-4" />
-                          {imagePreview ? "تغيير الصورة" : "رفع صورة"}
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="rating">التقييم (من 5)</Label>
-                  <Input
-                    id="rating"
-                    type="number"
-                    min={1}
-                    max={5}
-                    step={0.1}
-                    value={formData.rating}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        rating: parseFloat(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-                <Button type="submit" className="w-full gradient-primary" disabled={uploading || !formData.branch_id}>
-                  {editingId ? "تحديث" : "إضافة"}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
         </div>
 
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center">جاري التحميل...</div>
+            <div className="p-8 text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+              <p className="mt-2 text-muted-foreground">جاري التحميل...</p>
+            </div>
+          ) : captains.length === 0 ? (
+            <div className="p-12 text-center">
+              <UserCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">لا يوجد كباتن مسجلين</p>
+            </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-right">الصورة</TableHead>
                   <TableHead className="text-right">اسم الكابتن</TableHead>
-                  <TableHead className="text-right">الدولة</TableHead>
-                  <TableHead className="text-right">الفرع</TableHead>
+                  <TableHead className="text-right">المحافظة</TableHead>
+                  <TableHead className="text-right">السيارة</TableHead>
+                  <TableHead className="text-right">سعر الساعة</TableHead>
                   <TableHead className="text-right">التقييم</TableHead>
+                  <TableHead className="text-right">الحالة</TableHead>
                   <TableHead className="text-right">إجراءات</TableHead>
                 </TableRow>
               </TableHeader>
@@ -466,39 +202,92 @@ const Captains = () => {
                 {captains.map((captain) => (
                   <TableRow key={captain.id}>
                     <TableCell>
-                      <img
-                        src={captain.image_url || "https://i.pravatar.cc/40"}
-                        alt={captain.name}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
+                      {captain.personal_photo_url ? (
+                        <img
+                          src={captain.personal_photo_url}
+                          alt={captain.full_name}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                          <UserCircle className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                      )}
                     </TableCell>
-                    <TableCell className="font-medium">{captain.name}</TableCell>
+                    <TableCell className="font-medium">{captain.full_name}</TableCell>
                     <TableCell>
-                      {captain.branches?.governorates?.countries?.name || "-"}
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        {captain.governorates?.name || "غير محدد"}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {captain.branches?.name} - {captain.branches?.governorates?.name}
+                      <div className="flex items-center gap-2">
+                        <Car className="h-4 w-4 text-muted-foreground" />
+                        <span>{captain.car_type || "غير محدد"}</span>
+                        {captain.transmission_type && (
+                          <Badge variant="outline" className="text-xs">
+                            {captain.transmission_type === "automatic" ? "أوتوماتيك" : "مانيوال"}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-semibold text-primary">{captain.hourly_rate} جنيه</span>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1 text-amber-500">
                         <Star size={14} fill="currentColor" />
-                        {captain.rating}
+                        <span>{captain.rating?.toFixed(1) || "5.0"}</span>
+                        <span className="text-muted-foreground text-xs">
+                          ({captain.total_sessions || 0} جلسة)
+                        </span>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        className={captain.is_available 
+                          ? "bg-green-500/20 text-green-600 border-green-500/30" 
+                          : "bg-red-500/20 text-red-600 border-red-500/30"
+                        }
+                      >
+                        {captain.is_available ? "متاح" : "غير متاح"}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={() => handleEdit(captain)}
+                          onClick={() => {
+                            setSelectedCaptain(captain);
+                            setShowDetails(true);
+                          }}
+                          title="عرض التفاصيل"
                         >
-                          <Pencil size={16} />
+                          <Eye size={16} />
                         </Button>
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="text-destructive"
-                          onClick={() => handleDelete(captain.id)}
+                          onClick={() => toggleAvailability(captain)}
+                          title={captain.is_available ? "إيقاف" : "تفعيل"}
+                        >
+                          {captain.is_available ? (
+                            <X size={16} className="text-red-500" />
+                          ) : (
+                            <Check size={16} className="text-green-500" />
+                          )}
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => {
+                            setDeletingId(captain.id);
+                            setShowDeleteConfirm(true);
+                          }}
+                          title="حذف الكابتن"
+                          className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
                         >
                           <Trash2 size={16} />
                         </Button>
@@ -511,6 +300,135 @@ const Captains = () => {
           )}
         </div>
       </div>
+
+      {/* Captain Details Modal */}
+      <Dialog open={showDetails} onOpenChange={setShowDetails}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>تفاصيل الكابتن</DialogTitle>
+          </DialogHeader>
+          
+          {selectedCaptain && (
+            <div className="space-y-6 mt-4">
+              {/* Captain Header */}
+              <div className="flex items-center gap-4">
+                {selectedCaptain.personal_photo_url ? (
+                  <img
+                    src={selectedCaptain.personal_photo_url}
+                    alt={selectedCaptain.full_name}
+                    className="w-20 h-20 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
+                    <UserCircle className="h-10 w-10 text-muted-foreground" />
+                  </div>
+                )}
+                <div>
+                  <h3 className="text-xl font-bold">{selectedCaptain.full_name}</h3>
+                  {selectedCaptain.phone && (
+                    <p className="text-muted-foreground flex items-center gap-2 mt-1">
+                      <Phone className="h-4 w-4" />
+                      <span dir="ltr">{selectedCaptain.phone}</span>
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge className={selectedCaptain.is_available 
+                      ? "bg-green-500/20 text-green-600" 
+                      : "bg-red-500/20 text-red-600"
+                    }>
+                      {selectedCaptain.is_available ? "متاح" : "غير متاح"}
+                    </Badge>
+                    <div className="flex items-center gap-1 text-amber-500">
+                      <Star size={14} fill="currentColor" />
+                      <span>{selectedCaptain.rating?.toFixed(1) || "5.0"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-xl">
+                <div>
+                  <p className="text-sm text-muted-foreground">المحافظة</p>
+                  <p className="font-medium">{selectedCaptain.governorates?.name || "غير محدد"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">سعر الساعة</p>
+                  <p className="font-medium text-primary">{selectedCaptain.hourly_rate} جنيه</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">نوع السيارة</p>
+                  <p className="font-medium">{selectedCaptain.car_type || "غير محدد"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">ناقل الحركة</p>
+                  <p className="font-medium">
+                    {selectedCaptain.transmission_type === "automatic" ? "أوتوماتيك" : 
+                     selectedCaptain.transmission_type === "manual" ? "مانيوال" : "غير محدد"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">عدد الجلسات</p>
+                  <p className="font-medium">{selectedCaptain.total_sessions || 0} جلسة</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">تاريخ التسجيل</p>
+                  <p className="font-medium">
+                    {new Date(selectedCaptain.created_at).toLocaleDateString("ar-EG")}
+                  </p>
+                </div>
+              </div>
+
+              {/* Bio */}
+              {selectedCaptain.bio && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">نبذة عن الكابتن</p>
+                  <p className="bg-muted/30 p-4 rounded-lg">{selectedCaptain.bio}</p>
+                </div>
+              )}
+
+              {/* Car Photo */}
+              {selectedCaptain.car_photo_url && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">صورة السيارة</p>
+                  <img
+                    src={selectedCaptain.car_photo_url}
+                    alt="صورة السيارة"
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد حذف الكابتن</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف هذا الكابتن؟ سيتم إزالة جميع بياناته ولن يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteCaptain}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={actionLoading}
+            >
+              {actionLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin ml-2" />
+              ) : (
+                <Trash2 className="h-4 w-4 ml-2" />
+              )}
+              حذف الكابتن
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
