@@ -372,7 +372,7 @@ export const CaptainBookings = ({ captainId }: CaptainBookingsProps) => {
                         variant="outline"
                         className="gap-1"
                         onClick={() => {
-                          window.location.href = "/chat";
+                          window.location.href = `/chat/${booking.id}`;
                         }}
                       >
                         <MessageSquare className="h-4 w-4" />

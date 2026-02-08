@@ -55,7 +55,7 @@ const Dashboard = () => {
   return (
     <>
       <Helmet>
-        <title>لوحة التحكم | دينا أحمد</title>
+        <title>لوحة التحكم | كابتن مصر</title>
       </Helmet>
 
       <div className="space-y-8">

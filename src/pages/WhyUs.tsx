@@ -60,10 +60,10 @@ const WhyUs = () => {
   return (
     <>
       <Helmet>
-        <title>لماذا نحن | أكاديمية كابتن دينا أحمد</title>
+        <title>لماذا نحن | كابتن مصر لتعليم قيادة السيارات</title>
         <meta
           name="description"
-          content="اكتشف لماذا أكاديمية كابتن دينا أحمد هي الخيار الأفضل لتعلم السواقة - خبرة 15 سنة، تأهيل نفسي، قيادة دفاعية"
+          content="اكتشف لماذا كابتن مصر هو الخيار الأفضل لتعلم السواقة - خبرة 15 سنة، تأهيل نفسي، قيادة دفاعية"
         />
       </Helmet>
 
@@ -72,7 +72,7 @@ const WhyUs = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
-              ليه تختاري تتعلمي السواقة مع أكاديمية كابتن دينا؟
+              ليه تختار تتعلم السواقة مع كابتن مصر؟
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               مفهوم جديد في السواقة مع أفضل تجربة تعليم في مصر
