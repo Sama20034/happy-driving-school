@@ -8,15 +8,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, Package, MessageCircle, Wallet, Copy, Check, Truck, Loader2 } from "lucide-react";
-import { useCart } from "@/hooks/useCart";
+import { ShoppingCart, Plus, Minus, Trash2, ArrowRight, Package, MessageCircle, Wallet, Copy, Check, Truck, Loader2, CheckCircle } from "lucide-react";
+import { useCart, CartItem } from "@/hooks/useCart";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import OrderInvoiceModal from "@/components/store/OrderInvoiceModal";
+
+interface OrderData {
+  id: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_address: string;
+  customer_notes?: string;
+  total_amount: number;
+  status: string;
+  created_at: string;
+  payment_method: "wallet" | "whatsapp" | "cod";
+}
 
 const Cart = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { items, updateQuantity, removeItem, clearCart, getTotalPrice } = useCart();
   const [formData, setFormData] = useState({
     name: "",
@@ -27,6 +41,9 @@ const Cart = () => {
   const [paymentMethod, setPaymentMethod] = useState<"wallet" | "whatsapp" | "cod">("wallet");
   const [copiedNumber, setCopiedNumber] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showInvoice, setShowInvoice] = useState(false);
+  const [completedOrder, setCompletedOrder] = useState<OrderData | null>(null);
+  const [orderItems, setOrderItems] = useState<CartItem[]>([]);
 
   const WHATSAPP_NUMBER = "201515160511";
   const INSTAPAY_NUMBER = "01229109991";
@@ -69,7 +86,7 @@ const Cart = () => {
       }
 
       // Create order items
-      const orderItems = items.map(item => ({
+      const orderItemsData = items.map(item => ({
         order_id: orderData.id,
         product_id: item.id,
         product_name: item.name,
@@ -79,7 +96,7 @@ const Cart = () => {
 
       const { error: itemsError } = await supabase
         .from("order_items")
-        .insert(orderItems);
+        .insert(orderItemsData);
 
       if (itemsError) {
         console.error("Order items error:", itemsError);
@@ -89,44 +106,22 @@ const Cart = () => {
       return orderData;
     } catch (error) {
       console.error("Failed to save order:", error);
-      return null;
+      throw error;
     }
   };
 
-  const handleWhatsAppOrder = async (isPaid: boolean = false, isCOD: boolean = false) => {
-    if (items.length === 0) {
-      toast.error("السلة فارغة");
-      return;
-    }
-
-    if (!formData.name || !formData.phone || !formData.address) {
-      toast.error("يرجى ملء جميع البيانات المطلوبة");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    // Save order to database first
-    const savedOrder = await saveOrderToDatabase();
-    
-    if (!savedOrder && user) {
-      setIsSubmitting(false);
-      toast.error("حدث خطأ أثناء حفظ الطلب");
-      return;
-    }
-
-    // Build order details message
-    const itemsList = items
+  const sendWhatsAppMessage = (order: OrderData | null, orderItemsList: CartItem[]) => {
+    const itemsList = orderItemsList
       .map((item) => `• ${item.name} (${item.quantity} × ${item.price} ج.م) = ${item.price * item.quantity} ج.م`)
       .join("\n");
 
-    const paymentStatus = isPaid 
+    const paymentStatus = paymentMethod === "wallet"
       ? "✅ *تم الدفع عبر المحفظة/انستاباي*" 
-      : isCOD 
+      : paymentMethod === "cod"
         ? "💵 *الدفع عند الاستلام*"
         : "💳 *في انتظار التأكيد*";
 
-    const orderIdText = savedOrder ? `\n📋 *رقم الطلب:* #${savedOrder.id.slice(0, 8)}` : "";
+    const orderIdText = order ? `\n📋 *رقم الطلب:* #${order.id.slice(0, 8)}` : "";
 
     const message = `🛒 *طلب جديد من المتجر*${orderIdText}
 
@@ -145,27 +140,71 @@ ${paymentStatus}`;
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
-    
     window.open(whatsappUrl, "_blank");
-    
-    // Clear cart after successful order
-    clearCart();
-    toast.success("تم إرسال الطلب بنجاح!");
-    setIsSubmitting(false);
   };
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (paymentMethod === "wallet") {
-      await handleWhatsAppOrder(true, false);
-    } else if (paymentMethod === "cod") {
-      await handleWhatsAppOrder(false, true);
-    } else {
-      await handleWhatsAppOrder(false, false);
+
+    if (items.length === 0) {
+      toast.error("السلة فارغة");
+      return;
+    }
+
+    if (!formData.name || !formData.phone || !formData.address) {
+      toast.error("يرجى ملء جميع البيانات المطلوبة");
+      return;
+    }
+
+    if (!user) {
+      toast.error("يجب تسجيل الدخول أولاً لإتمام الطلب");
+      navigate("/auth");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Save order to database
+      const savedOrder = await saveOrderToDatabase();
+      
+      if (savedOrder) {
+        // Store items before clearing cart
+        setOrderItems([...items]);
+        
+        // Create order data with payment method
+        const orderData: OrderData = {
+          ...savedOrder,
+          payment_method: paymentMethod,
+        };
+        
+        setCompletedOrder(orderData);
+        setShowInvoice(true);
+        
+        // Clear cart
+        clearCart();
+        toast.success("تم تأكيد الطلب بنجاح!");
+      }
+    } catch (error) {
+      console.error("Order failed:", error);
+      toast.error("حدث خطأ أثناء حفظ الطلب، يرجى المحاولة مرة أخرى");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (items.length === 0) {
+  const handleInvoiceClose = () => {
+    setShowInvoice(false);
+    setCompletedOrder(null);
+    setOrderItems([]);
+    navigate("/my-orders");
+  };
+
+  const handleWhatsAppFromInvoice = () => {
+    sendWhatsAppMessage(completedOrder, orderItems);
+  };
+
+  if (items.length === 0 && !showInvoice) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -368,7 +407,7 @@ ${paymentStatus}`;
                               <p className="text-sm text-muted-foreground">فودافون كاش - اتصالات كاش - انستاباي</p>
                             </div>
                           </div>
-                          <Wallet className="h-5 w-5 text-green-600" />
+                          <Wallet className="h-5 w-5 text-primary" />
                         </div>
                       </div>
 
@@ -395,7 +434,7 @@ ${paymentStatus}`;
                               <p className="text-sm text-muted-foreground">ادفع نقداً عند استلام الطلب</p>
                             </div>
                           </div>
-                          <Truck className="h-5 w-5 text-orange-600" />
+                          <Truck className="h-5 w-5 text-primary" />
                         </div>
                       </div>
 
@@ -422,7 +461,7 @@ ${paymentStatus}`;
                               <p className="text-sm text-muted-foreground">تواصل مع الأدمن مباشرة</p>
                             </div>
                           </div>
-                          <MessageCircle className="h-5 w-5 text-green-600" />
+                          <MessageCircle className="h-5 w-5 text-primary" />
                         </div>
                       </div>
 
@@ -441,7 +480,7 @@ ${paymentStatus}`;
                                 onClick={() => handleCopyNumber(INSTAPAY_NUMBER)}
                               >
                                 {copiedNumber === INSTAPAY_NUMBER ? (
-                                  <Check className="h-4 w-4 text-green-600" />
+                                  <Check className="h-4 w-4 text-primary" />
                                 ) : (
                                   <Copy className="h-4 w-4" />
                                 )}
@@ -464,7 +503,7 @@ ${paymentStatus}`;
                                 onClick={() => handleCopyNumber(WALLET_NUMBER)}
                               >
                                 {copiedNumber === WALLET_NUMBER ? (
-                                  <Check className="h-4 w-4 text-green-600" />
+                                  <Check className="h-4 w-4 text-primary" />
                                 ) : (
                                   <Copy className="h-4 w-4" />
                                 )}
@@ -495,24 +534,19 @@ ${paymentStatus}`;
 
                     <Button
                       type="submit"
-                      className={`w-full ${paymentMethod === "cod" ? "bg-orange-600 hover:bg-orange-700" : "bg-green-600 hover:bg-green-700"}`}
+                      className="w-full"
                       size="lg"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
                         <>
                           <Loader2 className="ml-2 h-5 w-5 animate-spin" />
-                          جاري إرسال الطلب...
-                        </>
-                      ) : paymentMethod === "cod" ? (
-                        <>
-                          <Truck className="ml-2 h-5 w-5" />
-                          تأكيد الطلب - الدفع عند الاستلام
+                          جاري تأكيد الطلب...
                         </>
                       ) : (
                         <>
-                          <MessageCircle className="ml-2 h-5 w-5" />
-                          {paymentMethod === "wallet" ? "تأكيد الطلب عبر واتساب" : "طلب عبر واتساب"}
+                          <CheckCircle className="ml-2 h-5 w-5" />
+                          تأكيد الطلب
                         </>
                       )}
                     </Button>
@@ -526,6 +560,15 @@ ${paymentStatus}`;
 
       <Footer />
       <WhatsAppButton />
+
+      {/* Order Invoice Modal */}
+      <OrderInvoiceModal
+        open={showInvoice}
+        onClose={handleInvoiceClose}
+        order={completedOrder}
+        items={orderItems}
+        onWhatsAppSend={handleWhatsAppFromInvoice}
+      />
     </div>
   );
 };
