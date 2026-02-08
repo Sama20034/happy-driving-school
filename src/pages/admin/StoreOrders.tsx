@@ -26,10 +26,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ShoppingBag, Eye, Clock, CheckCircle, XCircle, Truck } from "lucide-react";
+import { ShoppingBag, Eye, Clock, CheckCircle, XCircle, Truck, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { useOrderNotifications } from "@/hooks/useOrderNotifications";
 
 const statusConfig: Record<string, { label: string; icon: any; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "قيد الانتظار", icon: Clock, variant: "secondary" },
@@ -43,6 +44,10 @@ const StoreOrders = () => {
   const queryClient = useQueryClient();
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  // Enable order notifications with sound
+  useOrderNotifications({ enabled: notificationsEnabled });
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ["admin-orders", statusFilter],
@@ -88,24 +93,49 @@ const StoreOrders = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">طلبات المتجر</h1>
           <p className="text-muted-foreground">إدارة ومتابعة الطلبات</p>
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="تصفية حسب الحالة" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">جميع الطلبات</SelectItem>
-            <SelectItem value="pending">قيد الانتظار</SelectItem>
-            <SelectItem value="confirmed">تم التأكيد</SelectItem>
-            <SelectItem value="shipping">جاري الشحن</SelectItem>
-            <SelectItem value="delivered">تم التوصيل</SelectItem>
-            <SelectItem value="cancelled">ملغي</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          {/* Notification Toggle */}
+          <Button
+            variant={notificationsEnabled ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setNotificationsEnabled(!notificationsEnabled);
+              toast.success(notificationsEnabled ? "تم إيقاف الإشعارات" : "تم تفعيل الإشعارات");
+            }}
+            className="flex items-center gap-2"
+          >
+            {notificationsEnabled ? (
+              <>
+                <Bell className="h-4 w-4" />
+                الإشعارات مفعلة
+              </>
+            ) : (
+              <>
+                <BellOff className="h-4 w-4" />
+                الإشعارات متوقفة
+              </>
+            )}
+          </Button>
+
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="تصفية حسب الحالة" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">جميع الطلبات</SelectItem>
+              <SelectItem value="pending">قيد الانتظار</SelectItem>
+              <SelectItem value="confirmed">تم التأكيد</SelectItem>
+              <SelectItem value="shipping">جاري الشحن</SelectItem>
+              <SelectItem value="delivered">تم التوصيل</SelectItem>
+              <SelectItem value="cancelled">ملغي</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <Card>
