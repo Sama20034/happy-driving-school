@@ -59,17 +59,12 @@ const Cart = () => {
   };
 
   const saveOrderToDatabase = async () => {
-    if (!user) {
-      toast.error("يجب تسجيل الدخول أولاً لإتمام الطلب");
-      return null;
-    }
-
     try {
-      // Create the order
+      // Create the order - user_id is optional for guest checkout
       const { data: orderData, error: orderError } = await supabase
         .from("orders")
         .insert({
-          user_id: user.id,
+          user_id: user?.id || null,
           customer_name: formData.name,
           customer_phone: formData.phone,
           customer_address: formData.address,
@@ -153,12 +148,6 @@ ${paymentStatus}`;
 
     if (!formData.name || !formData.phone || !formData.address) {
       toast.error("يرجى ملء جميع البيانات المطلوبة");
-      return;
-    }
-
-    if (!user) {
-      toast.error("يجب تسجيل الدخول أولاً لإتمام الطلب");
-      navigate("/auth");
       return;
     }
 
