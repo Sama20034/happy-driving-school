@@ -801,6 +801,7 @@ export type Database = {
           customer_notes: string | null
           customer_phone: string
           id: string
+          payment_method: string | null
           status: string
           total_amount: number
           updated_at: string
@@ -813,6 +814,7 @@ export type Database = {
           customer_notes?: string | null
           customer_phone: string
           id?: string
+          payment_method?: string | null
           status?: string
           total_amount: number
           updated_at?: string
@@ -825,6 +827,7 @@ export type Database = {
           customer_notes?: string | null
           customer_phone?: string
           id?: string
+          payment_method?: string | null
           status?: string
           total_amount?: number
           updated_at?: string
