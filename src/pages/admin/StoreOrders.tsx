@@ -254,6 +254,17 @@ const StoreOrders = () => {
                     <p className="font-medium">{selectedOrder.customer_notes}</p>
                   </div>
                 )}
+                <div className="col-span-2">
+                  <p className="text-muted-foreground">طريقة الدفع</p>
+                  <p className="font-medium">
+                    <Badge variant="outline" className="mt-1">
+                      {selectedOrder.payment_method === 'cod' && '💵 الدفع عند الاستلام'}
+                      {selectedOrder.payment_method === 'wallet' && '📱 تحويل محفظة / انستاباي'}
+                      {selectedOrder.payment_method === 'whatsapp' && '💬 الدفع عبر واتساب'}
+                      {!selectedOrder.payment_method && 'غير محدد'}
+                    </Badge>
+                  </p>
+                </div>
               </div>
 
               <Separator />
