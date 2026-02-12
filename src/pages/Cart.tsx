@@ -70,6 +70,7 @@ const Cart = () => {
           customer_address: formData.address,
           customer_notes: formData.notes || null,
           total_amount: getTotalPrice(),
+          payment_method: paymentMethod,
           status: "pending"
         })
         .select()
@@ -105,38 +106,6 @@ const Cart = () => {
     }
   };
 
-  const sendWhatsAppMessage = (order: OrderData | null, orderItemsList: CartItem[]) => {
-    const itemsList = orderItemsList
-      .map((item) => `• ${item.name} (${item.quantity} × ${item.price} ج.م) = ${item.price * item.quantity} ج.م`)
-      .join("\n");
-
-    const paymentStatus = paymentMethod === "wallet"
-      ? "✅ *تم الدفع عبر المحفظة/انستاباي*" 
-      : paymentMethod === "cod"
-        ? "💵 *الدفع عند الاستلام*"
-        : "💳 *في انتظار التأكيد*";
-
-    const orderIdText = order ? `\n📋 *رقم الطلب:* #${order.id.slice(0, 8)}` : "";
-
-    const message = `🛒 *طلب جديد من المتجر*${orderIdText}
-
-👤 *بيانات العميل:*
-الاسم: ${formData.name}
-الهاتف: ${formData.phone}
-العنوان: ${formData.address}
-${formData.notes ? `ملاحظات: ${formData.notes}` : ""}
-
-📦 *المنتجات:*
-${itemsList}
-
-💰 *الإجمالي: ${getTotalPrice()} ج.م*
-
-${paymentStatus}`;
-
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
-    window.open(whatsappUrl, "_blank");
-  };
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,9 +158,6 @@ ${paymentStatus}`;
     navigate("/my-orders");
   };
 
-  const handleWhatsAppFromInvoice = () => {
-    sendWhatsAppMessage(completedOrder, orderItems);
-  };
 
   if (items.length === 0 && !showInvoice) {
     return (
@@ -556,7 +522,7 @@ ${paymentStatus}`;
         onClose={handleInvoiceClose}
         order={completedOrder}
         items={orderItems}
-        onWhatsAppSend={handleWhatsAppFromInvoice}
+        onWhatsAppSend={() => {}}
       />
     </div>
   );
