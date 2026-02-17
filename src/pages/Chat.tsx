@@ -104,7 +104,8 @@ const Chat = () => {
 
   const fetchConversation = async () => {
     try {
-      const { data, error } = await supabase
+      // First try to find existing conversation
+      let { data, error } = await supabase
         .from("chat_conversations")
         .select(`
           *,
@@ -122,10 +123,64 @@ const Chat = () => {
 
       if (error) throw error;
       
+      // If no conversation exists, try to create one from booking data
       if (!data) {
-        toast.error("المحادثة غير موجودة");
-        navigate(-1);
-        return;
+        const { data: booking, error: bookingError } = await supabase
+          .from("captain_bookings")
+          .select("id, captain_id, trainee_id, status")
+          .eq("id", bookingId)
+          .maybeSingle();
+
+        if (bookingError || !booking) {
+          toast.error("الحجز غير موجود");
+          navigate(-1);
+          return;
+        }
+
+        if (booking.status === "pending") {
+          toast.error("المحادثة تتاح بعد تأكيد الحجز");
+          navigate(-1);
+          return;
+        }
+
+        // Create conversation
+        const { error: createError } = await supabase
+          .from("chat_conversations")
+          .insert({
+            booking_id: booking.id,
+            captain_id: booking.captain_id,
+            trainee_id: booking.trainee_id,
+          });
+
+        if (createError) {
+          // Might already exist (race condition), try fetching again
+          console.error("Create error:", createError);
+        }
+
+        // Fetch again after creation
+        const { data: newData, error: refetchError } = await supabase
+          .from("chat_conversations")
+          .select(`
+            *,
+            captain_profiles (
+              full_name,
+              personal_photo_url,
+              user_id
+            ),
+            captain_bookings (
+              trainee_name
+            )
+          `)
+          .eq("booking_id", bookingId)
+          .maybeSingle();
+
+        if (refetchError || !newData) {
+          toast.error("لا يمكن فتح المحادثة");
+          navigate(-1);
+          return;
+        }
+
+        data = newData;
       }
 
       setConversation(data);
