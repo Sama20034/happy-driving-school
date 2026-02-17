@@ -302,6 +302,7 @@ export type Database = {
           personal_photo_url: string | null
           phone: string | null
           rating: number | null
+          status: string
           total_sessions: number | null
           transmission_type: string | null
           updated_at: string
@@ -320,6 +321,7 @@ export type Database = {
           personal_photo_url?: string | null
           phone?: string | null
           rating?: number | null
+          status?: string
           total_sessions?: number | null
           transmission_type?: string | null
           updated_at?: string
@@ -338,6 +340,7 @@ export type Database = {
           personal_photo_url?: string | null
           phone?: string | null
           rating?: number | null
+          status?: string
           total_sessions?: number | null
           transmission_type?: string | null
           updated_at?: string
