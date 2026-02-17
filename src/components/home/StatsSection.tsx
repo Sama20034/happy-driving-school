@@ -1,29 +1,45 @@
+import { useState, useEffect } from "react";
 import { Users, UserCheck, Calendar, Star } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-const stats = [
-  {
-    icon: UserCheck,
-    value: "٥٠٠+",
-    label: "كابتن مسجل",
-  },
-  {
-    icon: Users,
-    value: "٢,٠٠٠+",
-    label: "متدرب",
-  },
-  {
-    icon: Calendar,
-    value: "٥,٠٠٠+",
-    label: "حجز ناجح",
-  },
-  {
-    icon: Star,
-    value: "٤.٨",
-    label: "متوسط التقييم",
-  },
-];
+const useRealStats = () => {
+  const [stats, setStats] = useState({ captains: 0, trainees: 0, bookings: 0, rating: "٥.٠" });
+
+  useEffect(() => {
+    const fetch = async () => {
+      const [captainsRes, traineesRes, bookingsRes, ratingRes] = await Promise.all([
+        supabase.from("captain_profiles").select("id", { count: "exact", head: true }).eq("status", "active"),
+        supabase.from("captain_bookings").select("trainee_id", { count: "exact", head: true }),
+        supabase.from("captain_bookings").select("id", { count: "exact", head: true }).in("status", ["confirmed", "completed"]),
+        supabase.from("captain_profiles").select("rating").eq("status", "active"),
+      ]);
+
+      const ratings = ratingRes.data?.map(r => r.rating).filter(Boolean) || [];
+      const avgRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : "5.0";
+
+      setStats({
+        captains: captainsRes.count || 0,
+        trainees: traineesRes.count || 0,
+        bookings: bookingsRes.count || 0,
+        rating: avgRating,
+      });
+    };
+    fetch();
+  }, []);
+
+  return stats;
+};
 
 const StatsSection = () => {
+  const realStats = useRealStats();
+
+  const stats = [
+    { icon: UserCheck, value: `${realStats.captains}`, label: "كابتن مسجل" },
+    { icon: Users, value: `${realStats.trainees}`, label: "متدرب" },
+    { icon: Calendar, value: `${realStats.bookings}`, label: "حجز ناجح" },
+    { icon: Star, value: realStats.rating, label: "متوسط التقييم" },
+  ];
+
   return (
     <section className="section gradient-navy-radial relative overflow-hidden">
       {/* Decorative elements */}

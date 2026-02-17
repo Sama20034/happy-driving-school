@@ -1,10 +1,30 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Shield, Star, Users, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const HeroSection = () => {
   const { user } = useAuth();
+  const [captainCount, setCaptainCount] = useState(0);
+  const [traineeCount, setTraineeCount] = useState(0);
+  const [avgRating, setAvgRating] = useState("5.0");
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [c, t, r] = await Promise.all([
+        supabase.from("captain_profiles").select("id", { count: "exact", head: true }).eq("status", "active"),
+        supabase.from("captain_bookings").select("trainee_id", { count: "exact", head: true }),
+        supabase.from("captain_profiles").select("rating").eq("status", "active"),
+      ]);
+      setCaptainCount(c.count || 0);
+      setTraineeCount(t.count || 0);
+      const ratings = r.data?.map(x => x.rating).filter(Boolean) || [];
+      if (ratings.length) setAvgRating((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1));
+    };
+    fetchStats();
+  }, []);
   return (
     <section className="min-h-[92vh] gradient-navy flex items-center relative overflow-hidden">
       {/* Decorative elements */}
@@ -118,7 +138,7 @@ const HeroSection = () => {
                 <Users className="w-5 h-5 text-white" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-white">+٥٠٠</div>
+                <div className="text-2xl font-bold text-white">{captainCount}</div>
                 <div className="text-sm text-white/60">كابتن مسجل</div>
               </div>
             </div>
@@ -128,7 +148,7 @@ const HeroSection = () => {
                 <Star className="w-5 h-5 text-white fill-white/30" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-white">٤.٨</div>
+                <div className="text-2xl font-bold text-white">{avgRating}</div>
                 <div className="text-sm text-white/60">متوسط التقييم</div>
               </div>
             </div>
@@ -138,8 +158,8 @@ const HeroSection = () => {
                 <Shield className="w-5 h-5 text-white" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-white">+٢٠٠٠</div>
-                <div className="text-sm text-white/60">متدرب سعيد</div>
+                <div className="text-2xl font-bold text-white">{traineeCount}</div>
+                <div className="text-sm text-white/60">متدرب</div>
               </div>
             </div>
           </div>
