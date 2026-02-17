@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { Star, Eye, Trash2, MapPin, Car, Phone, Check, X, Loader2, UserCircle } from "lucide-react";
+import { Star, Eye, Trash2, MapPin, Car, Phone, Check, X, Loader2, UserCircle, Ban, PauseCircle, PlayCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +10,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -48,129 +46,112 @@ interface CaptainProfile {
   rating: number | null;
   total_sessions: number | null;
   created_at: string;
+  status: string;
   governorates?: { name: string } | null;
 }
+
+type ActionType = "delete" | "ban" | "suspend" | "activate";
+
+const statusConfig: Record<string, { label: string; className: string }> = {
+  active: { label: "نشط", className: "bg-green-500/20 text-green-600 border-green-500/30" },
+  suspended: { label: "معلّق", className: "bg-yellow-500/20 text-yellow-600 border-yellow-500/30" },
+  banned: { label: "محظور", className: "bg-red-500/20 text-red-600 border-red-500/30" },
+};
 
 const Captains = () => {
   const [captains, setCaptains] = useState<CaptainProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCaptain, setSelectedCaptain] = useState<CaptainProfile | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [actionType, setActionType] = useState<ActionType>("delete");
+  const [targetId, setTargetId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   const fetchCaptains = async () => {
     setLoading(true);
-    
-    // Get approved captains from captain_profiles
     const { data, error } = await supabase
       .from("captain_profiles")
-      .select(`
-        *,
-        governorates (name)
-      `)
+      .select(`*, governorates (name)`)
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching captains:", error);
       toast.error("خطأ في تحميل الكباتن");
     } else {
       setCaptains(data || []);
     }
-    
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchCaptains();
-  }, []);
+  useEffect(() => { fetchCaptains(); }, []);
 
-  const handleDeleteCaptain = async () => {
-    if (!deletingId) return;
-    
+  const confirmAction = (id: string, type: ActionType) => {
+    setTargetId(id);
+    setActionType(type);
+    setShowConfirm(true);
+  };
+
+  const actionMessages: Record<ActionType, { title: string; desc: string; btn: string; success: string }> = {
+    delete: { title: "تأكيد حذف الكابتن", desc: "سيتم حذف الكابتن نهائياً ولن يمكن التراجع.", btn: "حذف نهائي", success: "تم حذف الكابتن" },
+    ban: { title: "تأكيد حظر الكابتن", desc: "سيتم حظر الكابتن ولن يظهر للمتدربين.", btn: "حظر الكابتن", success: "تم حظر الكابتن" },
+    suspend: { title: "تأكيد تعليق الكابتن", desc: "سيتم تعليق الكابتن مؤقتاً.", btn: "تعليق الكابتن", success: "تم تعليق الكابتن" },
+    activate: { title: "تأكيد تفعيل الكابتن", desc: "سيتم إعادة تفعيل الكابتن.", btn: "تفعيل الكابتن", success: "تم تفعيل الكابتن" },
+  };
+
+  const handleAction = async () => {
+    if (!targetId) return;
     setActionLoading(true);
-    
+
     try {
-      // Get the captain's user_id first
-      const captain = captains.find(c => c.id === deletingId);
+      const captain = captains.find(c => c.id === targetId);
       if (!captain) throw new Error("Captain not found");
 
-      // Delete captain profile (this will cascade delete related data)
-      const { error: profileError } = await supabase
-        .from("captain_profiles")
-        .delete()
-        .eq("id", deletingId);
+      if (actionType === "delete") {
+        const { error } = await supabase.from("captain_profiles").delete().eq("id", targetId);
+        if (error) throw error;
 
-      if (profileError) throw profileError;
-
-      // Update user role to trainee instead of captain
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .update({ role: "trainee" })
-        .eq("user_id", captain.user_id);
-
-      if (roleError) {
-        console.error("Error updating role:", roleError);
+        await supabase.from("user_roles").update({ role: "trainee" }).eq("user_id", captain.user_id);
+        await supabase.from("profiles").update({ 
+          is_approved: false, approval_status: "rejected",
+          rejection_reason: "تم حذف الكابتن من النظام"
+        }).eq("user_id", captain.user_id);
+      } else {
+        const newStatus = actionType === "ban" ? "banned" : actionType === "suspend" ? "suspended" : "active";
+        const { error } = await supabase.from("captain_profiles").update({ 
+          status: newStatus,
+          is_available: newStatus === "active" 
+        }).eq("id", targetId);
+        if (error) throw error;
       }
 
-      // Update profile approval status
-      const { error: approvalError } = await supabase
-        .from("profiles")
-        .update({ 
-          is_approved: false, 
-          approval_status: "rejected",
-          rejection_reason: "تم إزالة الكابتن من النظام"
-        })
-        .eq("user_id", captain.user_id);
-
-      if (approvalError) {
-        console.error("Error updating profile:", approvalError);
-      }
-
-      toast.success("تم حذف الكابتن بنجاح");
-      setShowDeleteConfirm(false);
-      setDeletingId(null);
+      toast.success(actionMessages[actionType].success);
+      setShowConfirm(false);
+      setTargetId(null);
       fetchCaptains();
     } catch (error: any) {
-      console.error("Error deleting captain:", error);
-      toast.error("حدث خطأ أثناء حذف الكابتن");
+      console.error("Error:", error);
+      toast.error("حدث خطأ أثناء تنفيذ الإجراء");
     } finally {
       setActionLoading(false);
     }
   };
 
-  const toggleAvailability = async (captain: CaptainProfile) => {
-    const { error } = await supabase
-      .from("captain_profiles")
-      .update({ is_available: !captain.is_available })
-      .eq("id", captain.id);
-
-    if (error) {
-      toast.error("خطأ في تحديث الحالة");
-    } else {
-      toast.success(captain.is_available ? "تم إيقاف الكابتن" : "تم تفعيل الكابتن");
-      fetchCaptains();
-    }
+  const getStatusBadge = (captain: CaptainProfile) => {
+    const config = statusConfig[captain.status] || statusConfig.active;
+    return <Badge className={config.className}>{config.label}</Badge>;
   };
 
   return (
     <>
-      <Helmet>
-        <title>إدارة الكباتن | لوحة التحكم</title>
-      </Helmet>
+      <Helmet><title>إدارة الكباتن | لوحة التحكم</title></Helmet>
 
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">إدارة الكباتن</h1>
-            <p className="text-muted-foreground">
-              عرض وإدارة الكباتن المسجلين
-              <span className="mr-2 text-primary font-semibold">
-                ({captains.length} كابتن)
-              </span>
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold mb-2">إدارة الكباتن</h1>
+          <p className="text-muted-foreground">
+            عرض وإدارة الكباتن المسجلين
+            <span className="mr-2 text-primary font-semibold">({captains.length} كابتن)</span>
+          </p>
         </div>
 
         <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -200,14 +181,10 @@ const Captains = () => {
               </TableHeader>
               <TableBody>
                 {captains.map((captain) => (
-                  <TableRow key={captain.id}>
+                  <TableRow key={captain.id} className={captain.status === "banned" ? "opacity-60" : ""}>
                     <TableCell>
                       {captain.personal_photo_url ? (
-                        <img
-                          src={captain.personal_photo_url}
-                          alt={captain.full_name}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
+                        <img src={captain.personal_photo_url} alt={captain.full_name} className="w-12 h-12 rounded-full object-cover" />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                           <UserCircle className="h-6 w-6 text-muted-foreground" />
@@ -239,56 +216,28 @@ const Captains = () => {
                       <div className="flex items-center gap-1 text-amber-500">
                         <Star size={14} fill="currentColor" />
                         <span>{captain.rating?.toFixed(1) || "5.0"}</span>
-                        <span className="text-muted-foreground text-xs">
-                          ({captain.total_sessions || 0} جلسة)
-                        </span>
+                        <span className="text-muted-foreground text-xs">({captain.total_sessions || 0})</span>
                       </div>
                     </TableCell>
+                    <TableCell>{getStatusBadge(captain)}</TableCell>
                     <TableCell>
-                      <Badge 
-                        className={captain.is_available 
-                          ? "bg-green-500/20 text-green-600 border-green-500/30" 
-                          : "bg-red-500/20 text-red-600 border-red-500/30"
-                        }
-                      >
-                        {captain.is_available ? "متاح" : "غير متاح"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => {
-                            setSelectedCaptain(captain);
-                            setShowDetails(true);
-                          }}
-                          title="عرض التفاصيل"
-                        >
+                      <div className="flex items-center gap-1">
+                        <Button size="icon" variant="ghost" onClick={() => { setSelectedCaptain(captain); setShowDetails(true); }} title="عرض">
                           <Eye size={16} />
                         </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => toggleAvailability(captain)}
-                          title={captain.is_available ? "إيقاف" : "تفعيل"}
-                        >
-                          {captain.is_available ? (
-                            <X size={16} className="text-red-500" />
-                          ) : (
-                            <Check size={16} className="text-green-500" />
-                          )}
+                        {captain.status !== "active" ? (
+                          <Button size="icon" variant="ghost" onClick={() => confirmAction(captain.id, "activate")} title="تفعيل">
+                            <PlayCircle size={16} className="text-green-500" />
+                          </Button>
+                        ) : (
+                          <Button size="icon" variant="ghost" onClick={() => confirmAction(captain.id, "suspend")} title="تعليق">
+                            <PauseCircle size={16} className="text-yellow-500" />
+                          </Button>
+                        )}
+                        <Button size="icon" variant="ghost" onClick={() => confirmAction(captain.id, "ban")} title="حظر" className="text-orange-500 hover:text-orange-600 hover:bg-orange-500/10">
+                          <Ban size={16} />
                         </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => {
-                            setDeletingId(captain.id);
-                            setShowDeleteConfirm(true);
-                          }}
-                          title="حذف الكابتن"
-                          className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                        >
+                        <Button size="icon" variant="ghost" onClick={() => confirmAction(captain.id, "delete")} title="حذف نهائي" className="text-destructive hover:text-destructive hover:bg-destructive/10">
                           <Trash2 size={16} />
                         </Button>
                       </div>
@@ -307,17 +256,11 @@ const Captains = () => {
           <DialogHeader>
             <DialogTitle>تفاصيل الكابتن</DialogTitle>
           </DialogHeader>
-          
           {selectedCaptain && (
             <div className="space-y-6 mt-4">
-              {/* Captain Header */}
               <div className="flex items-center gap-4">
                 {selectedCaptain.personal_photo_url ? (
-                  <img
-                    src={selectedCaptain.personal_photo_url}
-                    alt={selectedCaptain.full_name}
-                    className="w-20 h-20 rounded-full object-cover"
-                  />
+                  <img src={selectedCaptain.personal_photo_url} alt={selectedCaptain.full_name} className="w-20 h-20 rounded-full object-cover" />
                 ) : (
                   <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
                     <UserCircle className="h-10 w-10 text-muted-foreground" />
@@ -332,12 +275,7 @@ const Captains = () => {
                     </p>
                   )}
                   <div className="flex items-center gap-2 mt-2">
-                    <Badge className={selectedCaptain.is_available 
-                      ? "bg-green-500/20 text-green-600" 
-                      : "bg-red-500/20 text-red-600"
-                    }>
-                      {selectedCaptain.is_available ? "متاح" : "غير متاح"}
-                    </Badge>
+                    {getStatusBadge(selectedCaptain)}
                     <div className="flex items-center gap-1 text-amber-500">
                       <Star size={14} fill="currentColor" />
                       <span>{selectedCaptain.rating?.toFixed(1) || "5.0"}</span>
@@ -346,7 +284,6 @@ const Captains = () => {
                 </div>
               </div>
 
-              {/* Details Grid */}
               <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-xl">
                 <div>
                   <p className="text-sm text-muted-foreground">المحافظة</p>
@@ -373,13 +310,10 @@ const Captains = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">تاريخ التسجيل</p>
-                  <p className="font-medium">
-                    {new Date(selectedCaptain.created_at).toLocaleDateString("ar-EG")}
-                  </p>
+                  <p className="font-medium">{new Date(selectedCaptain.created_at).toLocaleDateString("ar-EG")}</p>
                 </div>
               </div>
 
-              {/* Bio */}
               {selectedCaptain.bio && (
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">نبذة عن الكابتن</p>
@@ -387,15 +321,10 @@ const Captains = () => {
                 </div>
               )}
 
-              {/* Car Photo */}
               {selectedCaptain.car_photo_url && (
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">صورة السيارة</p>
-                  <img
-                    src={selectedCaptain.car_photo_url}
-                    alt="صورة السيارة"
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
+                  <img src={selectedCaptain.car_photo_url} alt="صورة السيارة" className="w-full h-48 object-cover rounded-lg" />
                 </div>
               )}
             </div>
@@ -403,28 +332,22 @@ const Captains = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+      {/* Action Confirmation Dialog */}
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>تأكيد حذف الكابتن</AlertDialogTitle>
-            <AlertDialogDescription>
-              هل أنت متأكد من حذف هذا الكابتن؟ سيتم إزالة جميع بياناته ولن يمكن التراجع عن هذا الإجراء.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{actionMessages[actionType].title}</AlertDialogTitle>
+            <AlertDialogDescription>{actionMessages[actionType].desc}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteCaptain}
-              className="bg-red-600 hover:bg-red-700"
+              onClick={handleAction}
+              className={actionType === "activate" ? "bg-green-600 hover:bg-green-700" : "bg-destructive hover:bg-destructive/90"}
               disabled={actionLoading}
             >
-              {actionLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin ml-2" />
-              ) : (
-                <Trash2 className="h-4 w-4 ml-2" />
-              )}
-              حذف الكابتن
+              {actionLoading && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
+              {actionMessages[actionType].btn}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
