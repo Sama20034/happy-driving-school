@@ -37,7 +37,7 @@ interface Conversation {
 
 const Chat = () => {
   const { bookingId } = useParams();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -46,6 +46,14 @@ const Chat = () => {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast.error("يجب تسجيل الدخول أولاً");
+      navigate("/auth");
+    }
+  }, [authLoading, user, navigate]);
 
   useEffect(() => {
     if (bookingId && user) {
@@ -241,7 +249,7 @@ const Chat = () => {
     return isCaptain ? "" : conversation.captain_profiles?.personal_photo_url;
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
