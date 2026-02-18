@@ -60,6 +60,8 @@ const CaptainDashboard = () => {
     hourly_rate: 100,
     bio: "",
     is_available: true,
+    driving_license_expiry: "",
+    car_license_expiry: "",
   });
 
   useEffect(() => {
@@ -91,6 +93,8 @@ const CaptainDashboard = () => {
           hourly_rate: data.hourly_rate || 100,
           bio: data.bio || "",
           is_available: data.is_available,
+          driving_license_expiry: data.driving_license_expiry || "",
+          car_license_expiry: data.car_license_expiry || "",
         });
       }
     } catch (error) {
@@ -125,10 +129,12 @@ const CaptainDashboard = () => {
         phone: formData.phone,
         governorate_id: formData.governorate_id || null,
         car_type: formData.car_type,
-        transmission_type: formData.transmission_type || null, // Send null if empty
+        transmission_type: formData.transmission_type || null,
         hourly_rate: formData.hourly_rate,
         bio: formData.bio,
         is_available: formData.is_available,
+        driving_license_expiry: formData.driving_license_expiry || null,
+        car_license_expiry: formData.car_license_expiry || null,
       };
 
       if (profile) {
@@ -278,6 +284,34 @@ const CaptainDashboard = () => {
                       placeholder="اكتب نبذة مختصرة عن خبرتك..."
                       rows={3}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>تاريخ انتهاء رخصة القيادة</Label>
+                    <Input
+                      type="date"
+                      value={formData.driving_license_expiry}
+                      onChange={(e) => setFormData({ ...formData, driving_license_expiry: e.target.value })}
+                    />
+                    {formData.driving_license_expiry && new Date(formData.driving_license_expiry) <= new Date() && (
+                      <p className="text-sm text-destructive font-medium">⚠️ رخصة القيادة منتهية!</p>
+                    )}
+                    {formData.driving_license_expiry && new Date(formData.driving_license_expiry) > new Date() && new Date(formData.driving_license_expiry) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
+                      <p className="text-sm text-yellow-600 font-medium">⚠️ رخصة القيادة ستنتهي قريباً</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>تاريخ انتهاء رخصة السيارة (الترخيص)</Label>
+                    <Input
+                      type="date"
+                      value={formData.car_license_expiry}
+                      onChange={(e) => setFormData({ ...formData, car_license_expiry: e.target.value })}
+                    />
+                    {formData.car_license_expiry && new Date(formData.car_license_expiry) <= new Date() && (
+                      <p className="text-sm text-destructive font-medium">⚠️ رخصة السيارة منتهية!</p>
+                    )}
+                    {formData.car_license_expiry && new Date(formData.car_license_expiry) > new Date() && new Date(formData.car_license_expiry) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
+                      <p className="text-sm text-yellow-600 font-medium">⚠️ رخصة السيارة ستنتهي قريباً</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

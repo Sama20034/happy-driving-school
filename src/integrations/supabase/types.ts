@@ -329,9 +329,11 @@ export type Database = {
       captain_profiles: {
         Row: {
           bio: string | null
+          car_license_expiry: string | null
           car_photo_url: string | null
           car_type: string | null
           created_at: string
+          driving_license_expiry: string | null
           full_name: string
           governorate_id: string | null
           hourly_rate: number
@@ -348,9 +350,11 @@ export type Database = {
         }
         Insert: {
           bio?: string | null
+          car_license_expiry?: string | null
           car_photo_url?: string | null
           car_type?: string | null
           created_at?: string
+          driving_license_expiry?: string | null
           full_name: string
           governorate_id?: string | null
           hourly_rate?: number
@@ -367,9 +371,11 @@ export type Database = {
         }
         Update: {
           bio?: string | null
+          car_license_expiry?: string | null
           car_photo_url?: string | null
           car_type?: string | null
           created_at?: string
+          driving_license_expiry?: string | null
           full_name?: string
           governorate_id?: string | null
           hourly_rate?: number
@@ -1095,6 +1101,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_license_expiry: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
