@@ -77,6 +77,7 @@ const App = () => (
             <Route path="/captain-dashboard" element={<CaptainDashboard />} />
             <Route path="/trainee-dashboard" element={<TraineeDashboard />} />
             <Route path="/chat/:bookingId" element={<Chat />} />
+            <Route path="/chat/captain/:captainId" element={<Chat />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
