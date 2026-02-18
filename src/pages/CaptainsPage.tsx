@@ -43,6 +43,7 @@ const CaptainsPage = () => {
   const [modalImage, setModalImage] = useState<string>("");
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [captainToBook, setCaptainToBook] = useState<Captain | null>(null);
+  const [bookingCoursePrices, setBookingCoursePrices] = useState<{course_type: string; session_price: number}[]>([]);
 
   useEffect(() => {
     fetchGovernorates();
@@ -487,8 +488,14 @@ const CaptainsPage = () => {
                 {/* Book Button */}
                 <Button 
                   className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-base font-medium"
-                  onClick={() => {
+                  onClick={async () => {
                     setCaptainToBook(selectedCaptain);
+                    // Fetch course prices for this captain
+                    const { data: prices } = await supabase
+                      .from("captain_course_prices")
+                      .select("course_type, session_price")
+                      .eq("captain_id", selectedCaptain.id);
+                    setBookingCoursePrices(prices || []);
                     setSelectedCaptain(null);
                     setShowBookingModal(true);
                   }}
@@ -532,7 +539,9 @@ const CaptainsPage = () => {
           onClose={() => {
             setShowBookingModal(false);
             setCaptainToBook(null);
+            setBookingCoursePrices([]);
           }}
+          coursePrices={bookingCoursePrices}
         />
       )}
 
