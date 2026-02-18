@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Eye, EyeOff, Mail, Lock, User, Car, GraduationCap, Upload, CreditCard, UserCircle, FileText, Camera, MapPin } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Car, GraduationCap, Upload, CreditCard, UserCircle, FileText, Camera, MapPin, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,6 +41,11 @@ const Auth = () => {
     transmissionType: "" as "manual" | "automatic" | "",
     trainingGovernorateId: "",
   });
+
+  // Extra cars for captain registration (optional)
+  const [extraCars, setExtraCars] = useState<{ car_type: string; transmission_type: string }[]>([]);
+  const [showExtraCarForm, setShowExtraCarForm] = useState(false);
+  const [newExtraCar, setNewExtraCar] = useState({ car_type: "", transmission_type: "" });
 
   const [governorates, setGovernorates] = useState<{ id: string; name: string }[]>([]);
 
@@ -139,6 +144,9 @@ const Auth = () => {
     setCarLicensePreview(null);
     setDrivingLicensePreview(null);
     setCarPhotoPreview(null);
+    setExtraCars([]);
+    setShowExtraCarForm(false);
+    setNewExtraCar({ car_type: "", transmission_type: "" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -539,6 +547,93 @@ const Auth = () => {
                       preview={carPhotoPreview}
                       type="car_photo"
                     />
+                  </div>
+
+                  {/* Optional Extra Cars */}
+                  <div className="space-y-3 mt-4">
+                    <Label className="text-sm text-muted-foreground font-medium">إضافة سيارة أخرى (اختياري)</Label>
+                    
+                    {extraCars.map((car, index) => (
+                      <div key={index} className="flex items-center gap-2 p-3 border border-border rounded-xl bg-secondary/30">
+                        <Car className="h-4 w-4 text-primary shrink-0" />
+                        <span className="text-sm font-medium flex-1">{car.car_type}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {car.transmission_type === "manual" ? "مانيوال" : "أوتوماتيك"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setExtraCars(extraCars.filter((_, i) => i !== index))}
+                          className="text-destructive hover:text-destructive/80 text-xs"
+                        >
+                          حذف
+                        </button>
+                      </div>
+                    ))}
+
+                    {showExtraCarForm ? (
+                      <div className="p-3 border border-dashed border-primary/40 rounded-xl bg-primary/5 space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <Input
+                            placeholder="نوع السيارة"
+                            value={newExtraCar.car_type}
+                            onChange={(e) => setNewExtraCar({ ...newExtraCar, car_type: e.target.value })}
+                            className="text-right rounded-xl h-10 text-sm"
+                          />
+                          <Select
+                            value={newExtraCar.transmission_type}
+                            onValueChange={(value) => setNewExtraCar({ ...newExtraCar, transmission_type: value })}
+                          >
+                            <SelectTrigger className="text-right rounded-xl h-10 text-sm">
+                              <SelectValue placeholder="ناقل الحركة" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="manual">مانيوال</SelectItem>
+                              <SelectItem value="automatic">أوتوماتيك</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="default"
+                            className="text-xs rounded-xl"
+                            onClick={() => {
+                              if (newExtraCar.car_type.trim() && newExtraCar.transmission_type) {
+                                setExtraCars([...extraCars, { ...newExtraCar }]);
+                                setNewExtraCar({ car_type: "", transmission_type: "" });
+                                setShowExtraCarForm(false);
+                              } else {
+                                toast.error("يرجى ملء بيانات السيارة");
+                              }
+                            }}
+                          >
+                            إضافة
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className="text-xs rounded-xl"
+                            onClick={() => {
+                              setShowExtraCarForm(false);
+                              setNewExtraCar({ car_type: "", transmission_type: "" });
+                            }}
+                          >
+                            إلغاء
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowExtraCarForm(true)}
+                        className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                      >
+                        <Plus className="h-4 w-4" />
+                        إضافة سيارة أخرى
+                      </button>
+                    )}
                   </div>
                 </div>
               )}

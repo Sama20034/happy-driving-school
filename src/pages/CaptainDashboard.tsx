@@ -336,6 +336,13 @@ const CaptainDashboard = () => {
               </Card>
             </div>
 
+            {/* Inline Cars Management in Profile Tab */}
+            {profile && (
+              <div className="mt-6">
+                <CaptainCars captainId={profile.id} />
+              </div>
+            )}
+
             <div className="mt-6">
               <Button onClick={handleSaveProfile} disabled={saving} className="w-full md:w-auto">
                 {saving ? "جاري الحفظ..." : "حفظ البيانات"}
