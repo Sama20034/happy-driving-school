@@ -253,6 +253,44 @@ export type Database = {
           },
         ]
       }
+      captain_cars: {
+        Row: {
+          captain_id: string
+          car_photo_url: string | null
+          car_type: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          transmission_type: string
+        }
+        Insert: {
+          captain_id: string
+          car_photo_url?: string | null
+          car_type: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          transmission_type: string
+        }
+        Update: {
+          captain_id?: string
+          car_photo_url?: string | null
+          car_type?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          transmission_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "captain_cars_captain_id_fkey"
+            columns: ["captain_id"]
+            isOneToOne: false
+            referencedRelation: "captain_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       captain_course_prices: {
         Row: {
           captain_id: string
