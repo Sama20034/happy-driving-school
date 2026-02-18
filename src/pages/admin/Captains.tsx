@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { Star, Eye, Trash2, MapPin, Car, Phone, Check, X, Loader2, UserCircle, Ban, PauseCircle, PlayCircle } from "lucide-react";
+import { Star, Eye, Trash2, MapPin, Car, Phone, Check, X, Loader2, UserCircle, Ban, PauseCircle, PlayCircle, ShieldAlert, ShieldCheck, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +47,8 @@ interface CaptainProfile {
   total_sessions: number | null;
   created_at: string;
   status: string;
+  driving_license_expiry: string | null;
+  car_license_expiry: string | null;
   governorates?: { name: string } | null;
 }
 
@@ -141,6 +143,26 @@ const Captains = () => {
     return <Badge className={config.className}>{config.label}</Badge>;
   };
 
+  const getLicenseStatus = (expiryDate: string | null) => {
+    if (!expiryDate) return { status: "unknown", label: "غير محدد", className: "text-muted-foreground" };
+    const expiry = new Date(expiryDate);
+    const now = new Date();
+    const warningDate = new Date();
+    warningDate.setDate(warningDate.getDate() + 7);
+    
+    if (expiry <= now) return { status: "expired", label: "منتهية", className: "text-destructive" };
+    if (expiry <= warningDate) return { status: "warning", label: "تنتهي قريباً", className: "text-yellow-600" };
+    return { status: "valid", label: "سارية", className: "text-green-600" };
+  };
+
+  const LicenseStatusIcon = ({ date }: { date: string | null }) => {
+    const { status } = getLicenseStatus(date);
+    if (status === "expired") return <ShieldAlert className="h-4 w-4 text-destructive" />;
+    if (status === "warning") return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+    if (status === "valid") return <ShieldCheck className="h-4 w-4 text-green-600" />;
+    return <span className="text-xs text-muted-foreground">—</span>;
+  };
+
   return (
     <>
       <Helmet><title>إدارة الكباتن | لوحة التحكم</title></Helmet>
@@ -175,6 +197,8 @@ const Captains = () => {
                   <TableHead className="text-right">السيارة</TableHead>
                   <TableHead className="text-right">سعر الساعة</TableHead>
                   <TableHead className="text-right">التقييم</TableHead>
+                  <TableHead className="text-right">رخصة القيادة</TableHead>
+                  <TableHead className="text-right">رخصة السيارة</TableHead>
                   <TableHead className="text-right">الحالة</TableHead>
                   <TableHead className="text-right">إجراءات</TableHead>
                 </TableRow>
@@ -217,6 +241,26 @@ const Captains = () => {
                         <Star size={14} fill="currentColor" />
                         <span>{captain.rating?.toFixed(1) || "5.0"}</span>
                         <span className="text-muted-foreground text-xs">({captain.total_sessions || 0})</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        <LicenseStatusIcon date={captain.driving_license_expiry} />
+                        <span className={`text-xs ${getLicenseStatus(captain.driving_license_expiry).className}`}>
+                          {captain.driving_license_expiry 
+                            ? new Date(captain.driving_license_expiry).toLocaleDateString("ar-EG") 
+                            : "غير محدد"}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5">
+                        <LicenseStatusIcon date={captain.car_license_expiry} />
+                        <span className={`text-xs ${getLicenseStatus(captain.car_license_expiry).className}`}>
+                          {captain.car_license_expiry 
+                            ? new Date(captain.car_license_expiry).toLocaleDateString("ar-EG") 
+                            : "غير محدد"}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(captain)}</TableCell>
@@ -311,6 +355,31 @@ const Captains = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">تاريخ التسجيل</p>
                   <p className="font-medium">{new Date(selectedCaptain.created_at).toLocaleDateString("ar-EG")}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-xl">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">رخصة القيادة</p>
+                  <div className="flex items-center gap-2">
+                    <LicenseStatusIcon date={selectedCaptain.driving_license_expiry} />
+                    <span className={`font-medium ${getLicenseStatus(selectedCaptain.driving_license_expiry).className}`}>
+                      {selectedCaptain.driving_license_expiry 
+                        ? `${new Date(selectedCaptain.driving_license_expiry).toLocaleDateString("ar-EG")} (${getLicenseStatus(selectedCaptain.driving_license_expiry).label})`
+                        : "غير محدد"}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">رخصة السيارة</p>
+                  <div className="flex items-center gap-2">
+                    <LicenseStatusIcon date={selectedCaptain.car_license_expiry} />
+                    <span className={`font-medium ${getLicenseStatus(selectedCaptain.car_license_expiry).className}`}>
+                      {selectedCaptain.car_license_expiry 
+                        ? `${new Date(selectedCaptain.car_license_expiry).toLocaleDateString("ar-EG")} (${getLicenseStatus(selectedCaptain.car_license_expiry).label})`
+                        : "غير محدد"}
+                    </span>
+                  </div>
                 </div>
               </div>
 
