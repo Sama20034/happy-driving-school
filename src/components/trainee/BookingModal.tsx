@@ -334,35 +334,41 @@ export const BookingModal = ({ captain, open, onClose, coursePrices = [] }: Book
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2 space-x-reverse">
-                  <RadioGroupItem value="course" id="course" disabled={coursePrices.length === 0} />
+                  <RadioGroupItem value="course" id="course" />
                   <Label htmlFor="course" className="cursor-pointer">
-                    كورس كامل {coursePrices.length === 0 && "(غير متاح)"}
+                    كورس كامل
                   </Label>
                 </div>
               </RadioGroup>
             </div>
 
             {/* Course Selection - Only for course booking */}
-            {bookingType === "course" && coursePrices.length > 0 && (
+            {bookingType === "course" && (
               <div className="space-y-2">
                 <Label>اختر الكورس</Label>
-                <Select value={selectedCourseType} onValueChange={setSelectedCourseType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر الكورس" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {coursePrices.map((price) => {
-                      const config = CAPTAIN_COURSE_CONFIG[price.course_type];
-                      if (!config || price.session_price <= 0) return null;
-                      const totalCoursePrice = Math.round(price.session_price * config.sessions * (1 - DISCOUNT_PERCENTAGE));
-                      return (
-                        <SelectItem key={price.course_type} value={price.course_type}>
-                          {config.name} - {config.sessions} حصص - {totalCoursePrice} جنيه
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                {coursePrices.length > 0 ? (
+                  <Select value={selectedCourseType} onValueChange={setSelectedCourseType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر الكورس" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {coursePrices.map((price) => {
+                        const config = CAPTAIN_COURSE_CONFIG[price.course_type];
+                        if (!config || price.session_price <= 0) return null;
+                        const totalCoursePrice = Math.round(price.session_price * config.sessions * (1 - DISCOUNT_PERCENTAGE));
+                        return (
+                          <SelectItem key={price.course_type} value={price.course_type}>
+                            {config.name} - {config.sessions} حصص - {totalCoursePrice} جنيه
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+                    هذا الكابتن لم يحدد أسعار الكورسات بعد. يرجى التواصل معه أو اختيار حصة واحدة.
+                  </p>
+                )}
               </div>
             )}
 
