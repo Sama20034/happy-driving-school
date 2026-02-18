@@ -177,7 +177,7 @@ const Auth = () => {
             setIsSigningUp(false);
             return;
           }
-          if (!formData.carType || !formData.transmissionType || !formData.trainingGovernorateId) {
+          if (!formData.carType || !formData.transmissionType || !formData.trainingGovernorateId || !formData.meetingPoint) {
             toast.error("يرجى ملء جميع بيانات الكابتن المطلوبة");
             setIsSubmitting(false);
             setIsSigningUp(false);
@@ -447,7 +447,7 @@ const Auth = () => {
                     <div className="space-y-2">
                       <Label className="flex items-center gap-2 text-sm">
                         <Car className="h-4 w-4" />
-                        نوع السيارة
+                        نوع السيارة *
                       </Label>
                       <Input
                         placeholder="مثال: تويوتا كورولا"
@@ -460,7 +460,7 @@ const Auth = () => {
                     <div className="space-y-2">
                       <Label className="flex items-center gap-2 text-sm">
                         <Car className="h-4 w-4" />
-                        نوع ناقل الحركة
+                        نوع ناقل الحركة *
                       </Label>
                       <Select
                         value={formData.transmissionType}
@@ -481,7 +481,7 @@ const Auth = () => {
                     <div className="space-y-2">
                       <Label className="flex items-center gap-2 text-sm">
                         <MapPin className="h-4 w-4" />
-                        محافظة التدريب
+                        محافظة التدريب *
                       </Label>
                       <Select
                         value={formData.trainingGovernorateId}
@@ -505,7 +505,7 @@ const Auth = () => {
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2 text-sm">
                       <MapPin className="h-4 w-4" />
-                      نقطة الالتقاء للتدريب
+                      نقطة الالتقاء للتدريب *
                     </Label>
                     <Input
                       placeholder="مثال: ميدان التحرير - أمام مترو السادات"
