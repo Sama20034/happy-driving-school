@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, Car, MapPin, Clock, User, Eye, GraduationCap } from "lucide-react";
+import { Star, Car, MapPin, Clock, User, Eye, GraduationCap, MessageSquare } from "lucide-react";
 import { BookingModal } from "./BookingModal";
 import { CaptainDetailsModal } from "./CaptainDetailsModal";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 interface Captain {
   id: string;
@@ -44,6 +47,8 @@ interface CaptainCardProps {
 }
 
 export const CaptainCard = ({ captain }: CaptainCardProps) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [coursePrices, setCoursePrices] = useState<CoursePrice[]>([]);
@@ -67,6 +72,15 @@ export const CaptainCard = ({ captain }: CaptainCardProps) => {
   const handleBookFromDetails = () => {
     setShowDetailsModal(false);
     setShowBookingModal(true);
+  };
+
+  const handleChat = () => {
+    if (!user) {
+      toast.error("يجب تسجيل الدخول أولاً");
+      navigate("/auth");
+      return;
+    }
+    navigate(`/chat/captain/${captain.id}`);
   };
 
   return (
@@ -161,11 +175,19 @@ export const CaptainCard = ({ captain }: CaptainCardProps) => {
         <CardFooter className="pt-0 gap-2">
           <Button 
             variant="outline" 
-            className="flex-1"
+            size="icon"
             onClick={() => setShowDetailsModal(true)}
+            title="عرض التفاصيل"
           >
-            <Eye className="h-4 w-4 ml-2" />
-            عرض التفاصيل
+            <Eye className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={handleChat}
+            title="محادثة"
+          >
+            <MessageSquare className="h-4 w-4" />
           </Button>
           <Button className="flex-1" onClick={() => setShowBookingModal(true)}>
             احجز الآن

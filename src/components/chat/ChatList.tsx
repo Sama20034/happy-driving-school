@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 
 interface Conversation {
   id: string;
-  booking_id: string;
+  booking_id: string | null;
   captain_id: string;
   trainee_id: string;
   is_active: boolean;
@@ -36,25 +36,16 @@ export const ChatList = ({ userId, captainId, role }: ChatListProps) => {
   useEffect(() => {
     fetchConversations();
 
-    // Subscribe to new messages
     const channel = supabase
       .channel("chat_messages_list")
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "chat_messages",
-        },
-        () => {
-          fetchConversations();
-        }
+        { event: "INSERT", schema: "public", table: "chat_messages" },
+        () => { fetchConversations(); }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [userId, captainId]);
 
   const fetchConversations = async () => {
@@ -63,13 +54,8 @@ export const ChatList = ({ userId, captainId, role }: ChatListProps) => {
         .from("chat_conversations")
         .select(`
           *,
-          captain_profiles (
-            full_name,
-            personal_photo_url
-          ),
-          captain_bookings (
-            trainee_name
-          )
+          captain_profiles (full_name, personal_photo_url, user_id),
+          captain_bookings (trainee_name)
         `)
         .eq("is_active", true);
 
@@ -80,13 +66,10 @@ export const ChatList = ({ userId, captainId, role }: ChatListProps) => {
       }
 
       const { data, error } = await query.order("created_at", { ascending: false });
-
       if (error) throw error;
 
-      // Fetch last message and unread count for each conversation
       const conversationsWithMessages = await Promise.all(
         (data || []).map(async (conv: any) => {
-          // Get last message
           const { data: lastMsg } = await supabase
             .from("chat_messages")
             .select("content, created_at")
@@ -95,7 +78,6 @@ export const ChatList = ({ userId, captainId, role }: ChatListProps) => {
             .limit(1)
             .maybeSingle();
 
-          // Get unread count
           const { count } = await supabase
             .from("chat_messages")
             .select("*", { count: "exact", head: true })
@@ -103,10 +85,21 @@ export const ChatList = ({ userId, captainId, role }: ChatListProps) => {
             .eq("is_read", false)
             .neq("sender_id", userId);
 
+          // For direct chats (no booking), get trainee name from profiles table
+          let traineeName = conv.captain_bookings?.trainee_name;
+          if (!traineeName && role === "captain") {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("user_id", conv.trainee_id)
+              .maybeSingle();
+            traineeName = profile?.full_name || "متدرب";
+          }
+
           return {
             ...conv,
             other_user_name: role === "captain" 
-              ? conv.captain_bookings?.trainee_name 
+              ? traineeName
               : conv.captain_profiles?.full_name,
             other_user_photo: role === "trainee" 
               ? conv.captain_profiles?.personal_photo_url 
@@ -123,6 +116,15 @@ export const ChatList = ({ userId, captainId, role }: ChatListProps) => {
       console.error("Error fetching conversations:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleConversationClick = (conv: Conversation) => {
+    if (conv.booking_id) {
+      navigate(`/chat/${conv.booking_id}`);
+    } else {
+      // Direct chat - navigate by captain_id
+      navigate(`/chat/captain/${conv.captain_id}`);
     }
   };
 
@@ -148,7 +150,7 @@ export const ChatList = ({ userId, captainId, role }: ChatListProps) => {
             <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-muted-foreground">لا توجد محادثات حتى الآن</p>
             <p className="text-sm text-muted-foreground mt-2">
-              ستظهر المحادثات هنا بعد تأكيد الحجوزات
+              يمكنك بدء محادثة مع أي كابتن من تبويب الكباتن
             </p>
           </div>
         ) : (
@@ -156,7 +158,7 @@ export const ChatList = ({ userId, captainId, role }: ChatListProps) => {
             {conversations.map((conv) => (
               <div
                 key={conv.id}
-                onClick={() => navigate(`/chat/${conv.booking_id}`)}
+                onClick={() => handleConversationClick(conv)}
                 className="flex items-center gap-4 p-4 rounded-lg hover:bg-muted cursor-pointer transition-colors"
               >
                 <Avatar className="h-12 w-12">

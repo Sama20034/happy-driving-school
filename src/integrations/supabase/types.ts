@@ -507,7 +507,7 @@ export type Database = {
       }
       chat_conversations: {
         Row: {
-          booking_id: string
+          booking_id: string | null
           captain_id: string
           created_at: string
           id: string
@@ -515,7 +515,7 @@ export type Database = {
           trainee_id: string
         }
         Insert: {
-          booking_id: string
+          booking_id?: string | null
           captain_id: string
           created_at?: string
           id?: string
@@ -523,7 +523,7 @@ export type Database = {
           trainee_id: string
         }
         Update: {
-          booking_id?: string
+          booking_id?: string | null
           captain_id?: string
           created_at?: string
           id?: string

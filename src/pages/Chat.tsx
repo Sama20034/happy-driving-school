@@ -25,18 +25,19 @@ interface Conversation {
   id: string;
   captain_id: string;
   trainee_id: string;
+  booking_id: string | null;
   captain_profiles: {
     full_name: string;
     personal_photo_url: string;
     user_id: string;
   };
-  captain_bookings: {
+  captain_bookings?: {
     trainee_name: string;
-  };
+  } | null;
 }
 
 const Chat = () => {
-  const { bookingId } = useParams();
+  const { bookingId, captainId: directCaptainId } = useParams();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -47,7 +48,6 @@ const Chat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Redirect to auth if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
       toast.error("يجب تسجيل الدخول أولاً");
@@ -56,16 +56,19 @@ const Chat = () => {
   }, [authLoading, user, navigate]);
 
   useEffect(() => {
-    if (bookingId && user) {
-      fetchConversation();
+    if (user) {
+      if (directCaptainId) {
+        fetchOrCreateDirectConversation();
+      } else if (bookingId) {
+        fetchConversation();
+      }
     }
-  }, [bookingId, user]);
+  }, [bookingId, directCaptainId, user]);
 
   useEffect(() => {
     if (conversation) {
       fetchMessages();
 
-      // Subscribe to new messages
       const channel = supabase
         .channel(`chat_${conversation.id}`)
         .on(
@@ -80,7 +83,6 @@ const Chat = () => {
             const newMsg = payload.new as Message;
             setMessages((prev) => [...prev, newMsg]);
             
-            // Mark as read if not from current user
             if (newMsg.sender_id !== user?.id) {
               markAsRead(newMsg.id);
             }
@@ -102,28 +104,78 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const fetchConversation = async () => {
+  const fetchOrCreateDirectConversation = async () => {
+    if (!user || !directCaptainId) return;
     try {
-      // First try to find existing conversation
+      // Find existing direct conversation (no booking)
       let { data, error } = await supabase
         .from("chat_conversations")
         .select(`
           *,
-          captain_profiles (
-            full_name,
-            personal_photo_url,
-            user_id
-          ),
-          captain_bookings (
-            trainee_name
-          )
+          captain_profiles (full_name, personal_photo_url, user_id)
+        `)
+        .eq("captain_id", directCaptainId)
+        .eq("trainee_id", user.id)
+        .is("booking_id", null)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        // Create a new direct conversation
+        const { error: createError } = await supabase
+          .from("chat_conversations")
+          .insert({
+            captain_id: directCaptainId,
+            trainee_id: user.id,
+            booking_id: null,
+          });
+
+        if (createError) console.error("Create error:", createError);
+
+        // Fetch again
+        const { data: newData, error: refetchError } = await supabase
+          .from("chat_conversations")
+          .select(`
+            *,
+            captain_profiles (full_name, personal_photo_url, user_id)
+          `)
+          .eq("captain_id", directCaptainId)
+          .eq("trainee_id", user.id)
+          .is("booking_id", null)
+          .maybeSingle();
+
+        if (refetchError || !newData) {
+          toast.error("لا يمكن فتح المحادثة");
+          navigate(-1);
+          return;
+        }
+        data = newData;
+      }
+
+      setConversation(data);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("حدث خطأ في تحميل المحادثة");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchConversation = async () => {
+    try {
+      let { data, error } = await supabase
+        .from("chat_conversations")
+        .select(`
+          *,
+          captain_profiles (full_name, personal_photo_url, user_id),
+          captain_bookings (trainee_name)
         `)
         .eq("booking_id", bookingId)
         .maybeSingle();
 
       if (error) throw error;
       
-      // If no conversation exists, try to create one from booking data
       if (!data) {
         const { data: booking, error: bookingError } = await supabase
           .from("captain_bookings")
@@ -143,7 +195,6 @@ const Chat = () => {
           return;
         }
 
-        // Create conversation
         const { error: createError } = await supabase
           .from("chat_conversations")
           .insert({
@@ -152,24 +203,14 @@ const Chat = () => {
             trainee_id: booking.trainee_id,
           });
 
-        if (createError) {
-          // Might already exist (race condition), try fetching again
-          console.error("Create error:", createError);
-        }
+        if (createError) console.error("Create error:", createError);
 
-        // Fetch again after creation
         const { data: newData, error: refetchError } = await supabase
           .from("chat_conversations")
           .select(`
             *,
-            captain_profiles (
-              full_name,
-              personal_photo_url,
-              user_id
-            ),
-            captain_bookings (
-              trainee_name
-            )
+            captain_profiles (full_name, personal_photo_url, user_id),
+            captain_bookings (trainee_name)
           `)
           .eq("booking_id", bookingId)
           .maybeSingle();
@@ -179,7 +220,6 @@ const Chat = () => {
           navigate(-1);
           return;
         }
-
         data = newData;
       }
 
@@ -205,7 +245,6 @@ const Chat = () => {
       if (error) throw error;
       setMessages(data || []);
 
-      // Mark unread messages as read
       const unreadMessages = data?.filter(
         (m) => !m.is_read && m.sender_id !== user?.id
       );
@@ -266,7 +305,6 @@ const Chat = () => {
         .upload(fileName, file);
 
       if (uploadError) {
-        // If bucket doesn't exist, create it first
         if (uploadError.message.includes("bucket")) {
           toast.error("خطأ في رفع الصورة");
           return;
@@ -294,7 +332,7 @@ const Chat = () => {
     if (!conversation) return "";
     const isCaptain = conversation.captain_profiles?.user_id === user?.id;
     return isCaptain
-      ? conversation.captain_bookings?.trainee_name
+      ? conversation.captain_bookings?.trainee_name || "متدرب"
       : conversation.captain_profiles?.full_name;
   };
 
