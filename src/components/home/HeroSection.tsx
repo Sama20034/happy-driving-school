@@ -1,30 +1,79 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Shield, Star, Users, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
+const useAnimatedCounter = (target: number, duration = 1500) => {
+  const [count, setCount] = useState(0);
+  const prevTarget = useRef(0);
+
+  useEffect(() => {
+    if (target === prevTarget.current) return;
+    const start = prevTarget.current;
+    prevTarget.current = target;
+    const startTime = performance.now();
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(start + (target - start) * eased));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }, [target, duration]);
+
+  return count;
+};
+
 const HeroSection = () => {
   const { user } = useAuth();
   const [captainCount, setCaptainCount] = useState(0);
   const [traineeCount, setTraineeCount] = useState(0);
-  const [avgRating, setAvgRating] = useState("5.0");
+  const [avgRating, setAvgRating] = useState(5.0);
+
+  const animatedCaptains = useAnimatedCounter(captainCount);
+  const animatedTrainees = useAnimatedCounter(traineeCount);
+  const animatedRating = useAnimatedCounter(Math.round(avgRating * 10), 1000);
+
+  const fetchStats = useCallback(async () => {
+    const [c, t, r] = await Promise.all([
+      supabase.from("captain_profiles").select("id", { count: "exact", head: true }).eq("status", "active"),
+      supabase.from("captain_bookings").select("trainee_id", { count: "exact", head: true }),
+      supabase.from("captain_profiles").select("rating").eq("status", "active"),
+    ]);
+    setCaptainCount(c.count || 0);
+    setTraineeCount(t.count || 0);
+    const ratings = r.data?.map(x => x.rating).filter(Boolean) || [];
+    if (ratings.length) setAvgRating(ratings.reduce((a, b) => a + b, 0) / ratings.length);
+  }, []);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      const [c, t, r] = await Promise.all([
-        supabase.from("captain_profiles").select("id", { count: "exact", head: true }).eq("status", "active"),
-        supabase.from("captain_bookings").select("trainee_id", { count: "exact", head: true }),
-        supabase.from("captain_profiles").select("rating").eq("status", "active"),
-      ]);
-      setCaptainCount(c.count || 0);
-      setTraineeCount(t.count || 0);
-      const ratings = r.data?.map(x => x.rating).filter(Boolean) || [];
-      if (ratings.length) setAvgRating((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1));
-    };
     fetchStats();
-  }, []);
+
+    const captainChannel = supabase
+      .channel('hero-captains')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'captain_profiles' }, () => fetchStats())
+      .subscribe();
+
+    const bookingChannel = supabase
+      .channel('hero-bookings')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'captain_bookings' }, () => fetchStats())
+      .subscribe();
+
+    const profileChannel = supabase
+      .channel('hero-profiles')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => fetchStats())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(captainChannel);
+      supabase.removeChannel(bookingChannel);
+      supabase.removeChannel(profileChannel);
+    };
+  }, [fetchStats]);
   return (
     <section className="min-h-[92vh] gradient-navy flex items-center relative overflow-hidden">
       {/* Decorative elements */}
@@ -138,7 +187,7 @@ const HeroSection = () => {
                 <Users className="w-5 h-5 text-white" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-white">{captainCount}</div>
+                <div className="text-2xl font-bold text-white tabular-nums">+{animatedCaptains}</div>
                 <div className="text-sm text-white/60">كابتن مسجل</div>
               </div>
             </div>
@@ -148,7 +197,7 @@ const HeroSection = () => {
                 <Star className="w-5 h-5 text-white fill-white/30" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-white">{avgRating}</div>
+                <div className="text-2xl font-bold text-white tabular-nums">{(animatedRating / 10).toFixed(1)}</div>
                 <div className="text-sm text-white/60">متوسط التقييم</div>
               </div>
             </div>
@@ -158,8 +207,8 @@ const HeroSection = () => {
                 <Shield className="w-5 h-5 text-white" />
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-white">{traineeCount}</div>
-                <div className="text-sm text-white/60">متدرب</div>
+                <div className="text-2xl font-bold text-white tabular-nums">+{animatedTrainees}</div>
+                <div className="text-sm text-white/60">متدرب سعيد</div>
               </div>
             </div>
           </div>
