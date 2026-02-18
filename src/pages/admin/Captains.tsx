@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { Star, Eye, Trash2, MapPin, Car, Phone, Check, X, Loader2, UserCircle, Ban, PauseCircle, PlayCircle, ShieldAlert, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Star, Eye, Trash2, MapPin, Car, Phone, Check, X, Loader2, UserCircle, Ban, PauseCircle, PlayCircle, ShieldAlert, ShieldCheck, AlertTriangle, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -97,7 +97,14 @@ const Captains = () => {
     delete: { title: "تأكيد حذف الكابتن", desc: "سيتم حذف الكابتن نهائياً ولن يمكن التراجع.", btn: "حذف نهائي", success: "تم حذف الكابتن" },
     ban: { title: "تأكيد حظر الكابتن", desc: "سيتم حظر الكابتن ولن يظهر للمتدربين.", btn: "حظر الكابتن", success: "تم حظر الكابتن" },
     suspend: { title: "تأكيد تعليق الكابتن", desc: "سيتم تعليق الكابتن مؤقتاً.", btn: "تعليق الكابتن", success: "تم تعليق الكابتن" },
-    activate: { title: "تأكيد تفعيل الكابتن", desc: "سيتم إعادة تفعيل الكابتن.", btn: "تفعيل الكابتن", success: "تم تفعيل الكابتن" },
+    activate: { title: "تأكيد تفعيل الكابتن", desc: "سيتم إعادة تفعيل الكابتن وإتاحته للحجوزات.", btn: "تفعيل الكابتن", success: "تم تفعيل الكابتن" },
+  };
+
+  const hasExpiredLicense = (captain: CaptainProfile) => {
+    const now = new Date();
+    if (captain.driving_license_expiry && new Date(captain.driving_license_expiry) <= now) return true;
+    if (captain.car_license_expiry && new Date(captain.car_license_expiry) <= now) return true;
+    return false;
   };
 
   const handleAction = async () => {
@@ -394,6 +401,32 @@ const Captains = () => {
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">صورة السيارة</p>
                   <img src={selectedCaptain.car_photo_url} alt="صورة السيارة" className="w-full h-48 object-cover rounded-lg" />
+                </div>
+              )}
+
+              {/* Reactivation button for suspended captains */}
+              {selectedCaptain.status === "suspended" && (
+                <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl space-y-3">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                    <p className="font-semibold text-yellow-600">هذا الكابتن معلّق</p>
+                  </div>
+                  {hasExpiredLicense(selectedCaptain) ? (
+                    <p className="text-sm text-muted-foreground">
+                      لا يمكن إعادة التفعيل حالياً لأن إحدى الرخص منتهية. يجب على الكابتن تجديد الرخصة وتحديث التاريخ أولاً.
+                    </p>
+                  ) : (
+                    <Button 
+                      className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => {
+                        setShowDetails(false);
+                        confirmAction(selectedCaptain.id, "activate");
+                      }}
+                    >
+                      <RefreshCw className="h-4 w-4 ml-2" />
+                      إعادة تفعيل الكابتن
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
