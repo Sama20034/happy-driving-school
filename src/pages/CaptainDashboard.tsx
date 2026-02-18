@@ -19,6 +19,7 @@ import { ChatList } from "@/components/chat/ChatList";
 import { AdminSupportButton } from "@/components/chat/AdminSupportButton";
 import { CaptainWallet } from "@/components/captain/CaptainWallet";
 import { CaptainCoursePricing } from "@/components/captain/CaptainCoursePricing";
+import { CaptainCars } from "@/components/captain/CaptainCars";
 
 interface CaptainProfile {
   id: string;
@@ -190,10 +191,14 @@ const CaptainDashboard = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-8 lg:w-auto lg:inline-grid">
             <TabsTrigger value="profile" className="gap-2">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">بياناتي</span>
+            </TabsTrigger>
+            <TabsTrigger value="cars" className="gap-2">
+              <Car className="h-4 w-4" />
+              <span className="hidden sm:inline">سياراتي</span>
             </TabsTrigger>
             <TabsTrigger value="pricing" className="gap-2">
               <GraduationCap className="h-4 w-4" />
@@ -336,6 +341,18 @@ const CaptainDashboard = () => {
                 {saving ? "جاري الحفظ..." : "حفظ البيانات"}
               </Button>
             </div>
+          </TabsContent>
+
+          <TabsContent value="cars">
+            {profile ? (
+              <CaptainCars captainId={profile.id} />
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">يرجى حفظ بياناتك الشخصية أولاً</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="pricing">
