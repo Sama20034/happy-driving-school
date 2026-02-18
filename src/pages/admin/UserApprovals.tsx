@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { Check, X, Eye, UserCircle, CreditCard, Clock, CheckCircle, XCircle, Loader2, FileText, Car, Camera } from "lucide-react";
+import { Check, X, Eye, UserCircle, CreditCard, Clock, CheckCircle, XCircle, Loader2, FileText, Car, Camera, Trash2, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -11,6 +11,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 
 interface PendingUser {
@@ -40,6 +50,8 @@ const UserApprovals = () => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<PendingUser | null>(null);
 
   const fetchPendingUsers = async () => {
     setLoading(true);
@@ -134,6 +146,34 @@ const UserApprovals = () => {
       fetchPendingUsers();
     }
     setActionLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', deleteTarget.user_id);
+      
+      if (error) {
+        await supabase.from('profiles').update({
+          is_approved: false,
+          approval_status: 'rejected',
+          rejection_reason: 'تم حذف المستخدم من النظام'
+        }).eq('user_id', deleteTarget.user_id);
+      }
+      
+      toast.success('تم حذف المستخدم بنجاح');
+      setShowDeleteConfirm(false);
+      setDeleteTarget(null);
+      fetchPendingUsers();
+    } catch (err) {
+      toast.error('حدث خطأ أثناء الحذف');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -255,50 +295,87 @@ const UserApprovals = () => {
                             setSelectedUser(user);
                             setShowDocuments(true);
                           }}
-                          disabled={!user.id_card_url && !user.personal_photo_url}
                         >
                           <Eye className="h-4 w-4 ml-2" />
                           عرض
                         </Button>
                       </td>
                       <td className="px-6 py-4">
-                        {user.approval_status === 'pending' && (
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700"
-                              onClick={() => handleApprove(user)}
-                              disabled={actionLoading}
-                            >
-                              <Check className="h-4 w-4 ml-1" />
-                              قبول
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => {
-                                setSelectedUser(user);
-                                setShowRejectModal(true);
-                              }}
-                              disabled={actionLoading}
-                            >
-                              <X className="h-4 w-4 ml-1" />
-                              رفض
-                            </Button>
-                          </div>
-                        )}
-                        {user.approval_status === 'approved' && (
-                          <div className="flex items-center gap-2 text-green-600">
-                            <CheckCircle className="h-5 w-5" />
-                            <span>تم القبول</span>
-                          </div>
-                        )}
-                        {user.approval_status === 'rejected' && (
-                          <div className="flex items-center gap-2 text-red-600">
-                            <XCircle className="h-5 w-5" />
-                            <span>مرفوض</span>
-                          </div>
-                        )}
+                        <div className="flex gap-2 flex-wrap items-center">
+                          {user.approval_status === 'pending' && (
+                            <>
+                              <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => handleApprove(user)}
+                                disabled={actionLoading}
+                              >
+                                <Check className="h-4 w-4 ml-1" />
+                                قبول
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setShowRejectModal(true);
+                                }}
+                                disabled={actionLoading}
+                              >
+                                <X className="h-4 w-4 ml-1" />
+                                رفض
+                              </Button>
+                            </>
+                          )}
+                          {user.approval_status === 'approved' && (
+                            <>
+                              <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
+                                <CheckCircle className="h-3 w-3 ml-1" />
+                                تم القبول
+                              </Badge>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                title="إعادة للمراجعة"
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setShowRejectModal(true);
+                                }}
+                              >
+                                <RotateCcw className="h-4 w-4 text-yellow-500" />
+                              </Button>
+                            </>
+                          )}
+                          {user.approval_status === 'rejected' && (
+                            <>
+                              <Badge className="bg-red-500/20 text-red-600 border-red-500/30">
+                                <XCircle className="h-3 w-3 ml-1" />
+                                مرفوض
+                              </Badge>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                title="إعادة القبول"
+                                onClick={() => handleApprove(user)}
+                                disabled={actionLoading}
+                              >
+                                <Check className="h-4 w-4 text-green-500" />
+                              </Button>
+                            </>
+                          )}
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            title="حذف"
+                            onClick={() => {
+                              setDeleteTarget(user);
+                              setShowDeleteConfirm(true);
+                            }}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -413,6 +490,29 @@ const UserApprovals = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد حذف المستخدم</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف {deleteTarget?.full_name}؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={actionLoading}
+            >
+              {actionLoading && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
+              حذف نهائي
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
