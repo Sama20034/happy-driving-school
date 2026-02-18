@@ -20,7 +20,8 @@ interface CheckoutStepProps {
 
 const WHATSAPP_NUMBER = "201515160511";
 const INSTAPAY_NUMBER = "01229109991";
-const INSTAPAY_NAME = "كابتن مصر";
+const INSTAPAY_NAME = "Happy Driving School";
+const INSTAPAY_IPA = "happydriving@instapay";
 const WALLET_NUMBER = "01229109991";
 const WALLET_NAME = "كابتن مصر";
 
@@ -206,30 +207,32 @@ const CheckoutStep = ({ bookingData, onUpdateCustomer, onConfirm }: CheckoutStep
 
             {paymentMethod === "wallet" && (
               <div className="mt-4 p-4 bg-muted rounded-xl space-y-3">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">رقم انستاباي:</p>
-                  <div className="flex items-center justify-between bg-background p-2 rounded border">
-                    <span className="font-mono font-bold" dir="ltr">{INSTAPAY_NUMBER}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => handleCopyNumber(INSTAPAY_NUMBER)}
-                    >
-                      {copiedNumber === INSTAPAY_NUMBER ? (
-                        <Check className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
+                <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 space-y-2">
+                  <p className="text-sm font-bold text-primary">بيانات انستا باي:</p>
+                  <div className="space-y-1">
+                    <p className="text-sm">الاسم: <span className="font-bold">{INSTAPAY_NAME}</span></p>
+                    <div className="flex items-center justify-between bg-background p-2 rounded border">
+                      <span className="font-mono font-bold text-sm" dir="ltr">IPA: {INSTAPAY_IPA}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleCopyNumber(INSTAPAY_IPA)}
+                      >
+                        {copiedNumber === INSTAPAY_IPA ? (
+                          <Check className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">باسم: {INSTAPAY_NAME}</p>
                 </div>
                 
                 <Separator />
                 
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">رقم المحفظة:</p>
+                  <p className="text-sm font-medium">رقم فودافون كاش:</p>
                   <div className="flex items-center justify-between bg-background p-2 rounded border">
                     <span className="font-mono font-bold" dir="ltr">{WALLET_NUMBER}</span>
                     <Button
@@ -245,7 +248,6 @@ const CheckoutStep = ({ bookingData, onUpdateCustomer, onConfirm }: CheckoutStep
                       )}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">باسم: {WALLET_NAME}</p>
                 </div>
                 
                 <p className="text-sm text-primary text-center font-medium">
