@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import MobileUserCard from "@/components/admin/MobileUserCard";
 
 interface CaptainUser {
   id: string;
