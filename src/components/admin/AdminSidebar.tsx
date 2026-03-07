@@ -18,11 +18,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-import { ShoppingBag, FolderOpen, Package, Ticket, MessageSquare } from "lucide-react";
+import { ShoppingBag, FolderOpen, Package, Ticket, MessageSquare, GraduationCap } from "lucide-react";
 
 const menuItems = [
   { title: "لوحة التحكم", url: "/admin", icon: LayoutDashboard },
-  { title: "موافقات المستخدمين", url: "/admin/user-approvals", icon: UserCheck },
+  { title: "موافقات الكباتن", url: "/admin/captain-approvals", icon: UserCheck },
+  { title: "المتدربين", url: "/admin/trainee-approvals", icon: GraduationCap },
   { title: "إدارة الديبوزت", url: "/admin/booking-deposits", icon: CreditCard },
   { title: "محافظ الكباتن", url: "/admin/captain-wallets", icon: Wallet },
   { title: "الحجوزات", url: "/admin/bookings", icon: Calendar },
