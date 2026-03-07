@@ -389,7 +389,7 @@ const UserApprovals = () => {
 
       {/* Documents Modal */}
       <Dialog open={showDocuments} onOpenChange={setShowDocuments}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               مستندات المستخدم - {selectedUser?.full_name}
