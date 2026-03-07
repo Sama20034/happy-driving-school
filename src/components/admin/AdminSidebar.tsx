@@ -20,6 +20,10 @@ import { cn } from "@/lib/utils";
 
 import { ShoppingBag, FolderOpen, Package, Ticket, MessageSquare, GraduationCap } from "lucide-react";
 
+interface AdminSidebarProps {
+  onNavigate?: () => void;
+}
+
 const menuItems = [
   { title: "لوحة التحكم", url: "/admin", icon: LayoutDashboard },
   { title: "موافقات الكباتن", url: "/admin/captain-approvals", icon: UserCheck },
@@ -40,7 +44,7 @@ const menuItems = [
   { title: "طلبات المتجر", url: "/admin/store-orders", icon: ShoppingBag },
 ];
 
-const AdminSidebar = () => {
+const AdminSidebar = ({ onNavigate }: AdminSidebarProps) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -50,14 +54,14 @@ const AdminSidebar = () => {
   };
 
   return (
-    <aside className="w-64 bg-card border-l border-border min-h-screen flex flex-col">
+    <aside className="w-64 lg:w-64 bg-card border-l border-border min-h-screen flex flex-col">
       <div className="p-6 border-b border-border">
         <h2 className="text-xl font-bold text-primary">لوحة التحكم</h2>
         <p className="text-sm text-muted-foreground">إدارة النظام</p>
       </div>
 
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
+      <nav className="flex-1 p-4 overflow-y-auto">
+        <ul className="space-y-1">
           {menuItems.map((item) => (
             <li key={item.url}>
               <NavLink
@@ -68,6 +72,7 @@ const AdminSidebar = () => {
                   "hover:bg-muted text-muted-foreground"
                 )}
                 activeClassName="bg-primary/10 text-primary font-medium"
+                onClick={onNavigate}
               >
                 <item.icon size={20} />
                 <span>{item.title}</span>

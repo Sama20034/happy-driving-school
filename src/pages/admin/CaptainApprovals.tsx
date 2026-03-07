@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import MobileUserCard from "@/components/admin/MobileUserCard";
 
 interface CaptainUser {
   id: string;
@@ -326,93 +327,111 @@ const CaptainApprovals = () => {
             <p className="text-muted-foreground">لا يوجد كباتن مسجلين</p>
           </div>
         ) : (
-          <div className="bg-card border border-border rounded-2xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-6 py-4 text-right font-semibold">الكابتن</th>
-                    <th className="px-6 py-4 text-right font-semibold">الحالة</th>
-                    <th className="px-6 py-4 text-right font-semibold">تاريخ التسجيل</th>
-                    <th className="px-6 py-4 text-right font-semibold">عرض</th>
-                    <th className="px-6 py-4 text-right font-semibold">الإجراءات</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {captains.map((user) => (
-                    <tr key={user.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          {user.personal_photo_url ? (
-                            <img src={user.personal_photo_url} alt={user.full_name || 'Captain'} className="w-10 h-10 rounded-full object-cover" />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                              <UserCircle className="h-6 w-6 text-muted-foreground" />
-                            </div>
-                          )}
-                          <span className="font-medium">{user.full_name || 'بدون اسم'}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">{getStatusBadge(user.approval_status)}</td>
-                      <td className="px-6 py-4 text-muted-foreground">
-                        {new Date(user.created_at).toLocaleDateString('ar-EG')}
-                      </td>
-                      <td className="px-6 py-4">
-                        <Button variant="outline" size="sm" onClick={() => handleViewDetails(user)}>
-                          <Eye className="h-4 w-4 ml-2" />
-                          عرض
-                        </Button>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2 flex-wrap items-center">
-                          {user.approval_status === 'pending' && (
-                            <>
-                              <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleApprove(user)} disabled={actionLoading}>
-                                <Check className="h-4 w-4 ml-1" />قبول
-                              </Button>
-                              <Button size="sm" variant="destructive" onClick={() => { setSelectedUser(user); setShowRejectModal(true); }} disabled={actionLoading}>
-                                <X className="h-4 w-4 ml-1" />رفض
-                              </Button>
-                            </>
-                          )}
-                          {user.approval_status === 'approved' && (
-                            <>
-                              <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
-                                <CheckCircle className="h-3 w-3 ml-1" />تم القبول
-                              </Badge>
-                              <Button size="icon" variant="ghost" title="إعادة للمراجعة" onClick={() => { setSelectedUser(user); setShowRejectModal(true); }}>
-                                <RotateCcw className="h-4 w-4 text-yellow-500" />
-                              </Button>
-                            </>
-                          )}
-                          {user.approval_status === 'rejected' && (
-                            <>
-                              <Badge className="bg-red-500/20 text-red-600 border-red-500/30">
-                                <XCircle className="h-3 w-3 ml-1" />مرفوض
-                              </Badge>
-                              <Button size="icon" variant="ghost" title="إعادة القبول" onClick={() => handleApprove(user)} disabled={actionLoading}>
-                                <Check className="h-4 w-4 text-green-500" />
-                              </Button>
-                            </>
-                          )}
-                          <Button size="icon" variant="ghost" title="حذف" onClick={() => { setDeleteTarget(user); setShowDeleteConfirm(true); }}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <>
+            {/* Mobile Cards */}
+            <div className="space-y-3 md:hidden">
+              {captains.map((user) => (
+                <MobileUserCard
+                  key={user.id}
+                  user={user}
+                  onView={() => handleViewDetails(user)}
+                  onApprove={() => handleApprove(user)}
+                  onReject={() => { setSelectedUser(user); setShowRejectModal(true); }}
+                  onDelete={() => { setDeleteTarget(user); setShowDeleteConfirm(true); }}
+                  actionLoading={actionLoading}
+                />
+              ))}
             </div>
-          </div>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="px-6 py-4 text-right font-semibold">الكابتن</th>
+                      <th className="px-6 py-4 text-right font-semibold">الحالة</th>
+                      <th className="px-6 py-4 text-right font-semibold">تاريخ التسجيل</th>
+                      <th className="px-6 py-4 text-right font-semibold">عرض</th>
+                      <th className="px-6 py-4 text-right font-semibold">الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {captains.map((user) => (
+                      <tr key={user.id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            {user.personal_photo_url ? (
+                              <img src={user.personal_photo_url} alt={user.full_name || 'Captain'} className="w-10 h-10 rounded-full object-cover" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                                <UserCircle className="h-6 w-6 text-muted-foreground" />
+                              </div>
+                            )}
+                            <span className="font-medium">{user.full_name || 'بدون اسم'}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">{getStatusBadge(user.approval_status)}</td>
+                        <td className="px-6 py-4 text-muted-foreground">
+                          {new Date(user.created_at).toLocaleDateString('ar-EG')}
+                        </td>
+                        <td className="px-6 py-4">
+                          <Button variant="outline" size="sm" onClick={() => handleViewDetails(user)}>
+                            <Eye className="h-4 w-4 ml-2" />
+                            عرض
+                          </Button>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2 flex-wrap items-center">
+                            {user.approval_status === 'pending' && (
+                              <>
+                                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleApprove(user)} disabled={actionLoading}>
+                                  <Check className="h-4 w-4 ml-1" />قبول
+                                </Button>
+                                <Button size="sm" variant="destructive" onClick={() => { setSelectedUser(user); setShowRejectModal(true); }} disabled={actionLoading}>
+                                  <X className="h-4 w-4 ml-1" />رفض
+                                </Button>
+                              </>
+                            )}
+                            {user.approval_status === 'approved' && (
+                              <>
+                                <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
+                                  <CheckCircle className="h-3 w-3 ml-1" />تم القبول
+                                </Badge>
+                                <Button size="icon" variant="ghost" title="إعادة للمراجعة" onClick={() => { setSelectedUser(user); setShowRejectModal(true); }}>
+                                  <RotateCcw className="h-4 w-4 text-yellow-500" />
+                                </Button>
+                              </>
+                            )}
+                            {user.approval_status === 'rejected' && (
+                              <>
+                                <Badge className="bg-red-500/20 text-red-600 border-red-500/30">
+                                  <XCircle className="h-3 w-3 ml-1" />مرفوض
+                                </Badge>
+                                <Button size="icon" variant="ghost" title="إعادة القبول" onClick={() => handleApprove(user)} disabled={actionLoading}>
+                                  <Check className="h-4 w-4 text-green-500" />
+                                </Button>
+                              </>
+                            )}
+                            <Button size="icon" variant="ghost" title="حذف" onClick={() => { setDeleteTarget(user); setShowDeleteConfirm(true); }}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
       </div>
 
       {/* Captain Full Details Modal */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               تفاصيل الكابتن - {selectedUser?.full_name}
