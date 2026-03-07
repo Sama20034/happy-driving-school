@@ -37,7 +37,8 @@ import StoreCategories from "./pages/admin/StoreCategories";
 import StoreProducts from "./pages/admin/StoreProducts";
 import StoreOrders from "./pages/admin/StoreOrders";
 import DiscountCodes from "./pages/admin/DiscountCodes";
-import UserApprovals from "./pages/admin/UserApprovals";
+import CaptainApprovals from "./pages/admin/CaptainApprovals";
+import TraineeApprovals from "./pages/admin/TraineeApprovals";
 import BookingDeposits from "./pages/admin/BookingDeposits";
 import AdminChats from "./pages/admin/AdminChats";
 import CaptainWallets from "./pages/admin/CaptainWallets";
@@ -94,7 +95,9 @@ const App = () => (
               <Route path="store-categories" element={<StoreCategories />} />
               <Route path="store-products" element={<StoreProducts />} />
               <Route path="store-orders" element={<StoreOrders />} />
-              <Route path="user-approvals" element={<UserApprovals />} />
+              <Route path="captain-approvals" element={<CaptainApprovals />} />
+              <Route path="trainee-approvals" element={<TraineeApprovals />} />
+              <Route path="user-approvals" element={<CaptainApprovals />} />
               <Route path="chats" element={<AdminChats />} />
               <Route path="captain-wallets" element={<CaptainWallets />} />
             </Route>
