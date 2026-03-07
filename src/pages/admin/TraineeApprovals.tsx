@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import MobileUserCard from "@/components/admin/MobileUserCard";
 
 interface TraineeUser {
   id: string;
