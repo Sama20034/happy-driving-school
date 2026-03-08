@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import carExamplePhoto from "@/assets/car-example-photo.jpg";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Eye, EyeOff, Mail, Lock, User, Car, GraduationCap, Upload, CreditCard, UserCircle, FileText, Camera, MapPin, Plus } from "lucide-react";
@@ -292,6 +293,16 @@ const Auth = () => {
           </div>
         )}
       </div>
+      {type === 'car_photo' && !preview && (
+        <div className="mt-1 p-2 bg-secondary/50 rounded-lg border border-border">
+          <p className="text-xs text-muted-foreground text-center mb-1.5">📸 مثال للصورة المطلوبة:</p>
+          <img 
+            src={carExamplePhoto} 
+            alt="مثال لصورة السيارة" 
+            className="w-full h-20 object-cover rounded-md opacity-80"
+          />
+        </div>
+      )}
     </div>
   );
 
