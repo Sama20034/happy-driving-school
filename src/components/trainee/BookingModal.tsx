@@ -533,7 +533,7 @@ export const BookingModal = ({ captain, open, onClose, coursePrices = [] }: Book
               ) : (
                 <>
                   <p className="font-semibold">بيانات فودافون كاش:</p>
-                  <p className="text-sm" dir="ltr">رقم المحفظة: 01229109991</p>
+                  <p className="text-sm" dir="ltr">رقم المحفظة: 01515160511</p>
                 </>
               )}
             </div>
