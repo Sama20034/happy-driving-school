@@ -528,7 +528,7 @@ export const BookingModal = ({ captain, open, onClose, coursePrices = [] }: Book
                   <p className="font-semibold">بيانات انستا باي:</p>
                   <p className="text-sm">الاسم: Happy Driving School</p>
                   <p className="text-sm" dir="ltr">IPA: happydriving@instapay</p>
-                  <p className="text-sm" dir="ltr">رقم: 01229109991</p>
+                  <p className="text-sm" dir="ltr">رقم: 01515160511</p>
                 </>
               ) : (
                 <>
