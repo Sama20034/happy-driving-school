@@ -46,9 +46,9 @@ const Cart = () => {
   const [orderItems, setOrderItems] = useState<CartItem[]>([]);
 
   const WHATSAPP_NUMBER = "201515160511";
-  const INSTAPAY_NUMBER = "01229109991";
+  const INSTAPAY_NUMBER = "01515160511";
   const INSTAPAY_NAME = "كابتن مصر";
-  const WALLET_NUMBER = "01229109991";
+  const WALLET_NUMBER = "01515160511";
   const WALLET_NAME = "كابتن مصر";
 
   const handleCopyNumber = (number: string) => {

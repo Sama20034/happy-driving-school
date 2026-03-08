@@ -19,10 +19,10 @@ interface CheckoutStepProps {
 }
 
 const WHATSAPP_NUMBER = "201515160511";
-const INSTAPAY_NUMBER = "01229109991";
+const INSTAPAY_NUMBER = "01515160511";
 const INSTAPAY_NAME = "Happy Driving School";
 const INSTAPAY_IPA = "happydriving@instapay";
-const WALLET_NUMBER = "01229109991";
+const WALLET_NUMBER = "01515160511";
 const WALLET_NAME = "كابتن مصر";
 
 const CheckoutStep = ({ bookingData, onUpdateCustomer, onConfirm }: CheckoutStepProps) => {
