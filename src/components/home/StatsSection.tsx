@@ -9,8 +9,8 @@ const useRealStats = () => {
     const fetch = async () => {
       const [captainsRes, traineesRes, bookingsRes, ratingRes] = await Promise.all([
         supabase.from("captain_profiles").select("id", { count: "exact", head: true }).eq("status", "active"),
-        supabase.from("captain_bookings").select("trainee_id", { count: "exact", head: true }),
-        supabase.from("captain_bookings").select("id", { count: "exact", head: true }).in("status", ["confirmed", "completed"]),
+        supabase.rpc("get_satisfied_trainees_count"),
+        supabase.rpc("get_satisfied_trainees_count"),
         supabase.from("captain_profiles").select("rating").eq("status", "active"),
       ]);
 
@@ -19,8 +19,8 @@ const useRealStats = () => {
 
       setStats({
         captains: captainsRes.count || 0,
-        trainees: traineesRes.count || 0,
-        bookings: bookingsRes.count || 0,
+        trainees: traineesRes.data || 0,
+        bookings: bookingsRes.data || 0,
         rating: avgRating,
       });
     };
