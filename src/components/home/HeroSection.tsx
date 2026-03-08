@@ -208,7 +208,7 @@ const HeroSection = () => {
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-white tabular-nums">+{animatedTrainees}</div>
-                <div className="text-sm text-white/60">متدرب سعيد</div>
+                <div className="text-sm text-white/60">متدرب راضي</div>
               </div>
             </div>
           </div>
