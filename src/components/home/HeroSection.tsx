@@ -41,13 +41,11 @@ const HeroSection = () => {
   const fetchStats = useCallback(async () => {
     const [c, t, r] = await Promise.all([
       supabase.from("captain_profiles").select("id", { count: "exact", head: true }).eq("status", "active"),
-      supabase.from("captain_bookings").select("trainee_id").in("status", ["completed", "confirmed"]),
+      supabase.rpc("get_satisfied_trainees_count"),
       supabase.from("captain_profiles").select("rating").eq("status", "active"),
     ]);
     setCaptainCount(c.count || 0);
-    // Count distinct satisfied trainees (completed/confirmed bookings)
-    const distinctTrainees = new Set(t.data?.map(b => b.trainee_id) || []);
-    setTraineeCount(distinctTrainees.size);
+    setTraineeCount(t.data || 0);
     const ratings = r.data?.map(x => x.rating).filter(Boolean) || [];
     if (ratings.length) setAvgRating(ratings.reduce((a, b) => a + b, 0) / ratings.length);
   }, []);
