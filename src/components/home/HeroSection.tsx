@@ -53,19 +53,14 @@ const HeroSection = () => {
   useEffect(() => {
     fetchStats();
 
-    const captainChannel = supabase
-      .channel('hero-captains')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'captain_profiles' }, () => fetchStats())
+    const rolesChannel = supabase
+      .channel('hero-roles')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, () => fetchStats())
       .subscribe();
 
     const bookingChannel = supabase
       .channel('hero-bookings')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'captain_bookings' }, () => fetchStats())
-      .subscribe();
-
-    const profileChannel = supabase
-      .channel('hero-profiles')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => fetchStats())
       .subscribe();
 
     return () => {
