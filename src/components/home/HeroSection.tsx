@@ -40,7 +40,7 @@ const HeroSection = () => {
 
   const fetchStats = useCallback(async () => {
     const [c, t, r] = await Promise.all([
-      supabase.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "captain"),
+      supabase.rpc("get_captains_count"),
       supabase.rpc("get_satisfied_trainees_count"),
       supabase.from("captain_profiles").select("rating").eq("status", "active"),
     ]);
