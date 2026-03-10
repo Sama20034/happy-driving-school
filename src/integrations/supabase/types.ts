@@ -1102,6 +1102,7 @@ export type Database = {
     }
     Functions: {
       check_license_expiry: { Args: never; Returns: undefined }
+      get_captains_count: { Args: never; Returns: number }
       get_satisfied_trainees_count: { Args: never; Returns: number }
       has_role: {
         Args: {
