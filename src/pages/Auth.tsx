@@ -396,6 +396,24 @@ const Auth = () => {
                 </div>
               )}
 
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="phone">رقم الهاتف</Label>
+                  <div className="relative">
+                    <Phone className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="أدخل رقم هاتفك"
+                      className="pr-10 text-right rounded-xl h-12"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+              )}
+
 
               <div className="space-y-2">
                 <Label htmlFor="email">البريد الإلكتروني</Label>
