@@ -18,7 +18,7 @@ const useRealStats = () => {
       const avgRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : "5.0";
 
       setStats({
-        captains: captainsRes.count || 0,
+        captains: captainsRes.data || 0,
         trainees: traineesRes.data || 0,
         bookings: bookingsRes.data || 0,
         rating: avgRating,

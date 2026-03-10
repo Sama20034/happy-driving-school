@@ -44,7 +44,7 @@ const HeroSection = () => {
       supabase.rpc("get_satisfied_trainees_count"),
       supabase.from("captain_profiles").select("rating").eq("status", "active"),
     ]);
-    setCaptainCount(c.count || 0);
+    setCaptainCount(c.data || 0);
     setTraineeCount(t.data || 0);
     const ratings = r.data?.map(x => x.rating).filter(Boolean) || [];
     if (ratings.length) setAvgRating(ratings.reduce((a, b) => a + b, 0) / ratings.length);
