@@ -37,6 +37,7 @@ const Auth = () => {
     email: "",
     password: "",
     fullName: "",
+    phone: "",
     meetingPoint: "",
     carType: "",
     transmissionType: "" as "manual" | "automatic" | "",
