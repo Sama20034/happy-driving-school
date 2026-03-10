@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import carExamplePhoto from "@/assets/car-example-photo.jpg";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Eye, EyeOff, Mail, Lock, User, Car, GraduationCap, Upload, CreditCard, UserCircle, FileText, Camera, MapPin, Plus } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Car, GraduationCap, Upload, CreditCard, UserCircle, FileText, Camera, MapPin, Plus, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +37,7 @@ const Auth = () => {
     email: "",
     password: "",
     fullName: "",
+    phone: "",
     meetingPoint: "",
     carType: "",
     transmissionType: "" as "manual" | "automatic" | "",
@@ -194,7 +195,7 @@ const Auth = () => {
           }
         }
 
-        const { error, data } = await signUp(formData.email, formData.password, formData.fullName, selectedRole);
+        const { error, data } = await signUp(formData.email, formData.password, formData.fullName, selectedRole, formData.phone);
         if (error) {
           if (error.message.includes("already registered")) {
             toast.error("هذا البريد الإلكتروني مسجل بالفعل");
@@ -226,7 +227,8 @@ const Auth = () => {
               car_type: formData.carType,
               transmission_type: formData.transmissionType,
               training_governorate_id: formData.trainingGovernorateId,
-              meeting_point: formData.meetingPoint || null
+              meeting_point: formData.meetingPoint || null,
+              phone: formData.phone || null
             };
 
             await supabase
@@ -388,6 +390,24 @@ const Auth = () => {
                       className="pr-10 text-right rounded-xl h-12"
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+              )}
+
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="phone">رقم الهاتف</Label>
+                  <div className="relative">
+                    <Phone className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="أدخل رقم هاتفك"
+                      className="pr-10 text-right rounded-xl h-12"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       required
                     />
                   </div>
