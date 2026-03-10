@@ -64,9 +64,8 @@ const HeroSection = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(captainChannel);
+      supabase.removeChannel(rolesChannel);
       supabase.removeChannel(bookingChannel);
-      supabase.removeChannel(profileChannel);
     };
   }, [fetchStats]);
   return (
