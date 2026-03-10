@@ -195,7 +195,7 @@ const Auth = () => {
           }
         }
 
-        const { error, data } = await signUp(formData.email, formData.password, formData.fullName, selectedRole);
+        const { error, data } = await signUp(formData.email, formData.password, formData.fullName, selectedRole, formData.phone);
         if (error) {
           if (error.message.includes("already registered")) {
             toast.error("هذا البريد الإلكتروني مسجل بالفعل");
