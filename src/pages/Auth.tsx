@@ -227,7 +227,8 @@ const Auth = () => {
               car_type: formData.carType,
               transmission_type: formData.transmissionType,
               training_governorate_id: formData.trainingGovernorateId,
-              meeting_point: formData.meetingPoint || null
+              meeting_point: formData.meetingPoint || null,
+              phone: formData.phone || null
             };
 
             await supabase
