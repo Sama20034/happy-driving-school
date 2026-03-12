@@ -68,8 +68,23 @@ const CaptainsPage = () => {
         governorates (name)
       `)
       .eq("is_available", true)
-      .eq("status", "active")
       .order("rating", { ascending: false });
+
+    const { data: approvedProfiles } = await supabase
+      .from("profiles")
+      .select(`
+        id,
+        user_id,
+        full_name,
+        phone,
+        training_governorate_id,
+        car_type,
+        transmission_type,
+        car_photo_url,
+        personal_photo_url,
+        governorates:training_governorate_id (name)
+      `)
+      .eq("approval_status", "approved");
 
     const combinedCaptains: Captain[] = [];
     
@@ -79,6 +94,49 @@ const CaptainsPage = () => {
           ...captain,
           governorate_name: captain.governorates?.name || null,
         });
+      });
+    }
+
+    if (approvedProfiles) {
+      const existingUserIds = combinedCaptains.map(c => c.user_id);
+      
+      approvedProfiles.forEach((profile: any) => {
+        if (!existingUserIds.includes(profile.user_id)) {
+          combinedCaptains.push({
+            id: profile.id,
+            user_id: profile.user_id,
+            full_name: profile.full_name || "كابتن",
+            phone: profile.phone,
+            governorate_id: profile.training_governorate_id,
+            governorate_name: profile.governorates?.name || null,
+            car_type: profile.car_type,
+            transmission_type: profile.transmission_type,
+            car_photo_url: profile.car_photo_url,
+            personal_photo_url: profile.personal_photo_url,
+            hourly_rate: 100,
+            bio: null,
+            is_available: true,
+            rating: 5.0,
+            total_sessions: 0,
+          });
+        } else {
+          const existingIndex = combinedCaptains.findIndex(c => c.user_id === profile.user_id);
+          if (existingIndex !== -1) {
+            const existing = combinedCaptains[existingIndex];
+            if (!existing.personal_photo_url && profile.personal_photo_url) {
+              combinedCaptains[existingIndex].personal_photo_url = profile.personal_photo_url;
+            }
+            if (!existing.car_photo_url && profile.car_photo_url) {
+              combinedCaptains[existingIndex].car_photo_url = profile.car_photo_url;
+            }
+            if (!existing.car_type && profile.car_type) {
+              combinedCaptains[existingIndex].car_type = profile.car_type;
+            }
+            if (!existing.transmission_type && profile.transmission_type) {
+              combinedCaptains[existingIndex].transmission_type = profile.transmission_type;
+            }
+          }
+        }
       });
     }
 

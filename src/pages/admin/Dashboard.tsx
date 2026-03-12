@@ -28,7 +28,7 @@ const Dashboard = () => {
         supabase.from("governorates").select("id", { count: "exact", head: true }),
         supabase.from("branches").select("id", { count: "exact", head: true }),
         supabase.from("courses").select("id", { count: "exact", head: true }),
-        supabase.from("captain_profiles").select("id", { count: "exact", head: true }),
+        supabase.from("profiles").select("id", { count: "exact", head: true }).eq("approval_status", "approved"),
       ]);
 
       setStats({
