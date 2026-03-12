@@ -23,17 +23,17 @@ const HeroSlider = () => {
   }, [api]);
 
   return (
-    <section className="w-full relative">
+    <div className="absolute inset-0 z-0">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, direction: "rtl" }}
         plugins={[Autoplay({ delay: 4000, stopOnInteraction: false })]}
-        className="w-full"
+        className="w-full h-full"
       >
-        <CarouselContent className="ml-0">
+        <CarouselContent className="ml-0 h-full">
           {slides.map((slide, i) => (
-            <CarouselItem key={i} className="pl-0">
-              <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] md:aspect-[16/8] lg:aspect-[16/7]">
+            <CarouselItem key={i} className="pl-0 h-full">
+              <div className="w-full h-full">
                 <img
                   src={slide}
                   alt={`كابتن مصر - ${i + 1}`}
@@ -61,7 +61,7 @@ const HeroSlider = () => {
           />
         ))}
       </div>
-    </section>
+    </div>
   );
 };
 
