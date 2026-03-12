@@ -33,11 +33,11 @@ const HeroSlider = () => {
         <CarouselContent className="ml-0">
           {slides.map((slide, i) => (
             <CarouselItem key={i} className="pl-0">
-              <div className="relative w-full">
+              <div className="relative w-full max-h-[75vh] bg-[#2563eb] flex items-center justify-center overflow-hidden">
                 <img
                   src={slide}
                   alt={`كابتن مصر - ${i + 1}`}
-                  className="w-full h-auto block"
+                  className="w-full h-full max-h-[75vh] object-contain"
                   loading={i === 0 ? "eager" : "lazy"}
                 />
               </div>
