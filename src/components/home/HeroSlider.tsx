@@ -37,7 +37,7 @@ const HeroSlider = () => {
                 <img
                   src={slide}
                   alt={`كابتن مصر - ${i + 1}`}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
                   loading={i === 0 ? "eager" : "lazy"}
                 />
               </div>
