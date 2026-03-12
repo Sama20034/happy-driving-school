@@ -23,22 +23,24 @@ const HeroSlider = () => {
   }, [api]);
 
   return (
-    <div className="w-full relative">
+    <div className="relative w-full h-[100svh] min-h-[520px] pt-16 overflow-hidden">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, direction: "rtl" }}
         plugins={[Autoplay({ delay: 4000, stopOnInteraction: false })]}
-        className="w-full"
+        className="w-full h-full"
       >
-        <CarouselContent className="ml-0">
+        <CarouselContent className="ml-0 h-full">
           {slides.map((slide, i) => (
-            <CarouselItem key={i} className="pl-0">
-              <img
-                src={slide}
-                alt={`كابتن مصر - ${i + 1}`}
-                className="w-full h-auto block"
-                loading={i === 0 ? "eager" : "lazy"}
-              />
+            <CarouselItem key={i} className="pl-0 h-full">
+              <div className="flex h-full w-full items-center justify-center">
+                <img
+                  src={slide}
+                  alt={`كابتن مصر - ${i + 1}`}
+                  className="h-full w-full object-contain"
+                  loading={i === 0 ? "eager" : "lazy"}
+                />
+              </div>
             </CarouselItem>
           ))}
         </CarouselContent>
