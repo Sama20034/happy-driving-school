@@ -33,11 +33,11 @@ const HeroSlider = () => {
         <CarouselContent className="ml-0">
           {slides.map((slide, i) => (
             <CarouselItem key={i} className="pl-0">
-              <div className="relative w-full">
+              <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] md:aspect-[16/8] lg:aspect-[16/7]">
                 <img
                   src={slide}
                   alt={`كابتن مصر - ${i + 1}`}
-                  className="w-full h-auto block"
+                  className="w-full h-full object-cover"
                   loading={i === 0 ? "eager" : "lazy"}
                 />
               </div>
