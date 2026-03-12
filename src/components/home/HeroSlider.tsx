@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Autoplay from "embla-carousel-autoplay";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 
@@ -23,24 +23,22 @@ const HeroSlider = () => {
   }, [api]);
 
   return (
-    <div className="absolute inset-0 z-0">
+    <div className="w-full relative">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, direction: "rtl" }}
         plugins={[Autoplay({ delay: 4000, stopOnInteraction: false })]}
-        className="w-full h-full"
+        className="w-full"
       >
-        <CarouselContent className="ml-0 h-full">
+        <CarouselContent className="ml-0">
           {slides.map((slide, i) => (
-            <CarouselItem key={i} className="pl-0 h-full">
-              <div className="w-full h-full">
-                <img
-                  src={slide}
-                  alt={`كابتن مصر - ${i + 1}`}
-                  className="w-full h-full object-cover"
-                  loading={i === 0 ? "eager" : "lazy"}
-                />
-              </div>
+            <CarouselItem key={i} className="pl-0">
+              <img
+                src={slide}
+                alt={`كابتن مصر - ${i + 1}`}
+                className="w-full h-auto block"
+                loading={i === 0 ? "eager" : "lazy"}
+              />
             </CarouselItem>
           ))}
         </CarouselContent>
@@ -54,8 +52,8 @@ const HeroSlider = () => {
             onClick={() => api?.scrollTo(i)}
             className={`w-3 h-3 rounded-full transition-all ${
               i === current
-                ? "bg-white scale-110 shadow-lg"
-                : "bg-white/50 hover:bg-white/70"
+                ? "bg-primary scale-110 shadow-lg"
+                : "bg-primary/30 hover:bg-primary/50"
             }`}
             aria-label={`الانتقال للصورة ${i + 1}`}
           />
