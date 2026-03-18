@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Calendar, Clock, User, X, MessageSquare, Check, Banknote } from "lucide-react";
+import { Calendar, Clock, User, X, MessageSquare, Check, Banknote, Phone } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
