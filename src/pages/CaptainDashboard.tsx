@@ -120,6 +120,12 @@ const CaptainDashboard = () => {
 
   const handleSaveProfile = async () => {
     if (!user) return;
+    
+    if (!formData.phone.trim()) {
+      toast.error("رقم الهاتف مطلوب");
+      return;
+    }
+    
     setSaving(true);
 
     try {
