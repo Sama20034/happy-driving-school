@@ -257,11 +257,12 @@ const CaptainDashboard = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>رقم الهاتف</Label>
+                    <Label>رقم الهاتف <span className="text-destructive">*</span></Label>
                     <Input
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       placeholder="أدخل رقم هاتفك"
+                      required
                     />
                   </div>
                   <div className="space-y-2">

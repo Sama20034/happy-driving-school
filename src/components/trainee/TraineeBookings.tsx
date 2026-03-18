@@ -216,14 +216,6 @@ export const TraineeBookings = ({ userId }: TraineeBookingsProps) => {
                       </span>
                       {getStatusBadge(booking.status)}
                     </div>
-                    {booking.status === "confirmed" && booking.captain_profiles?.phone && (
-                      <div className="flex items-center gap-2 text-primary">
-                        <Phone className="h-4 w-4" />
-                        <a href={`tel:${booking.captain_profiles.phone}`} className="font-medium hover:underline">
-                          {booking.captain_profiles.phone}
-                        </a>
-                      </div>
-                    )}
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
