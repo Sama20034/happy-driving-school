@@ -383,7 +383,7 @@ const CaptainDashboard = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>سعر الساعة (جنيه)</Label>
+                    <Label>سعر الساعة (جنيه) <span className="text-destructive">*</span></Label>
                     <Input
                       type="number"
                       value={formData.hourly_rate}
