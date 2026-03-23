@@ -121,8 +121,36 @@ const CaptainDashboard = () => {
   const handleSaveProfile = async () => {
     if (!user) return;
     
+    if (!formData.full_name.trim()) {
+      toast.error("الاسم الكامل مطلوب");
+      return;
+    }
     if (!formData.phone.trim()) {
       toast.error("رقم الهاتف مطلوب");
+      return;
+    }
+    if (!formData.governorate_id) {
+      toast.error("يرجى اختيار المحافظة");
+      return;
+    }
+    if (!formData.car_type.trim()) {
+      toast.error("نوع السيارة مطلوب");
+      return;
+    }
+    if (!formData.transmission_type) {
+      toast.error("يرجى اختيار نوع ناقل الحركة");
+      return;
+    }
+    if (!formData.bio.trim()) {
+      toast.error("النبذة الشخصية مطلوبة");
+      return;
+    }
+    if (!formData.driving_license_expiry) {
+      toast.error("تاريخ انتهاء رخصة القيادة مطلوب");
+      return;
+    }
+    if (!formData.car_license_expiry) {
+      toast.error("تاريخ انتهاء رخصة السيارة مطلوب");
       return;
     }
     
