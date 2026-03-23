@@ -368,7 +368,7 @@ const CaptainDashboard = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>نوع ناقل الحركة</Label>
+                    <Label>نوع ناقل الحركة <span className="text-destructive">*</span></Label>
                     <Select
                       value={formData.transmission_type}
                       onValueChange={(value) => setFormData({ ...formData, transmission_type: value })}
