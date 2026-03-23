@@ -50,6 +50,8 @@ interface CaptainProfile {
   driving_license_expiry: string | null;
   car_license_expiry: string | null;
   governorates?: { name: string } | null;
+  has_captain_profile?: boolean;
+  approval_status?: string | null;
 }
 
 type ActionType = "delete" | "ban" | "suspend" | "activate";
@@ -58,6 +60,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   active: { label: "نشط", className: "bg-green-500/20 text-green-600 border-green-500/30" },
   suspended: { label: "معلّق", className: "bg-yellow-500/20 text-yellow-600 border-yellow-500/30" },
   banned: { label: "محظور", className: "bg-red-500/20 text-red-600 border-red-500/30" },
+  incomplete: { label: "لم يكمل الملف", className: "bg-gray-500/20 text-gray-600 border-gray-500/30" },
 };
 
 const Captains = () => {
@@ -72,15 +75,66 @@ const Captains = () => {
 
   const fetchCaptains = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    
+    // Fetch captains with full profiles
+    const { data: captainProfiles, error: cpError } = await supabase
       .from("captain_profiles")
       .select(`*, governorates (name)`)
       .order("created_at", { ascending: false });
 
-    if (error) {
+    // Fetch all users with captain role from profiles (to find those without captain_profile)
+    const { data: allCaptainRoles, error: rolesError } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "captain");
+
+    let incompleteCaptains: CaptainProfile[] = [];
+    
+    if (allCaptainRoles && captainProfiles) {
+      const captainProfileUserIds = new Set(captainProfiles.map(cp => cp.user_id));
+      const missingUserIds = allCaptainRoles
+        .map(r => r.user_id)
+        .filter(uid => !captainProfileUserIds.has(uid));
+
+      if (missingUserIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, phone, personal_photo_url, created_at, approval_status")
+          .in("user_id", missingUserIds);
+
+        if (profilesData) {
+          incompleteCaptains = profilesData.map(p => ({
+            id: p.user_id,
+            user_id: p.user_id,
+            full_name: p.full_name || "بدون اسم",
+            phone: p.phone,
+            governorate_id: null,
+            car_type: null,
+            transmission_type: null,
+            car_photo_url: null,
+            personal_photo_url: p.personal_photo_url,
+            hourly_rate: 0,
+            bio: null,
+            is_available: false,
+            rating: null,
+            total_sessions: null,
+            created_at: p.created_at,
+            status: "incomplete",
+            driving_license_expiry: null,
+            car_license_expiry: null,
+            governorates: null,
+            has_captain_profile: false,
+            approval_status: p.approval_status,
+          }));
+        }
+      }
+    }
+
+    if (cpError || rolesError) {
       toast.error("خطأ في تحميل الكباتن");
     } else {
-      setCaptains(data || []);
+      const fullCaptains = (captainProfiles || []).map(cp => ({ ...cp, has_captain_profile: true }));
+      setCaptains([...fullCaptains, ...incompleteCaptains]);
     }
     setLoading(false);
   };
