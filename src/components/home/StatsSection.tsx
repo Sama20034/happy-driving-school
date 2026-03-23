@@ -10,7 +10,7 @@ const useRealStats = () => {
       const [captainsRes, traineesRes, bookingsRes, ratingRes] = await Promise.all([
         supabase.rpc("get_captains_count"),
         supabase.rpc("get_satisfied_trainees_count"),
-        supabase.rpc("get_satisfied_trainees_count"),
+        supabase.rpc("get_successful_bookings_count"),
         supabase.from("captain_profiles").select("rating").eq("status", "active"),
       ]);
 
