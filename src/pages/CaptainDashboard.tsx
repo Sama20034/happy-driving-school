@@ -277,7 +277,7 @@ const CaptainDashboard = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>الاسم الكامل</Label>
+                    <Label>الاسم الكامل <span className="text-destructive">*</span></Label>
                     <Input
                       value={formData.full_name}
                       onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
