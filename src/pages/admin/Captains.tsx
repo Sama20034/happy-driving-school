@@ -50,6 +50,8 @@ interface CaptainProfile {
   driving_license_expiry: string | null;
   car_license_expiry: string | null;
   governorates?: { name: string } | null;
+  has_captain_profile?: boolean;
+  approval_status?: string | null;
 }
 
 type ActionType = "delete" | "ban" | "suspend" | "activate";
