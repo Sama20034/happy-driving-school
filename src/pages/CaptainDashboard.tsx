@@ -312,7 +312,7 @@ const CaptainDashboard = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>نبذة عنك</Label>
+                    <Label>نبذة عنك <span className="text-destructive">*</span></Label>
                     <Textarea
                       value={formData.bio}
                       onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
