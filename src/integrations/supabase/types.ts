@@ -1104,6 +1104,7 @@ export type Database = {
       check_license_expiry: { Args: never; Returns: undefined }
       get_captains_count: { Args: never; Returns: number }
       get_satisfied_trainees_count: { Args: never; Returns: number }
+      get_successful_bookings_count: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
