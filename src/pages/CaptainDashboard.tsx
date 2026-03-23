@@ -121,8 +121,36 @@ const CaptainDashboard = () => {
   const handleSaveProfile = async () => {
     if (!user) return;
     
+    if (!formData.full_name.trim()) {
+      toast.error("الاسم الكامل مطلوب");
+      return;
+    }
     if (!formData.phone.trim()) {
       toast.error("رقم الهاتف مطلوب");
+      return;
+    }
+    if (!formData.governorate_id) {
+      toast.error("يرجى اختيار المحافظة");
+      return;
+    }
+    if (!formData.car_type.trim()) {
+      toast.error("نوع السيارة مطلوب");
+      return;
+    }
+    if (!formData.transmission_type) {
+      toast.error("يرجى اختيار نوع ناقل الحركة");
+      return;
+    }
+    if (!formData.bio.trim()) {
+      toast.error("النبذة الشخصية مطلوبة");
+      return;
+    }
+    if (!formData.driving_license_expiry) {
+      toast.error("تاريخ انتهاء رخصة القيادة مطلوب");
+      return;
+    }
+    if (!formData.car_license_expiry) {
+      toast.error("تاريخ انتهاء رخصة السيارة مطلوب");
       return;
     }
     
@@ -249,7 +277,7 @@ const CaptainDashboard = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>الاسم الكامل</Label>
+                    <Label>الاسم الكامل <span className="text-destructive">*</span></Label>
                     <Input
                       value={formData.full_name}
                       onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
@@ -266,7 +294,7 @@ const CaptainDashboard = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>المحافظة</Label>
+                    <Label>المحافظة <span className="text-destructive">*</span></Label>
                     <Select
                       value={formData.governorate_id}
                       onValueChange={(value) => setFormData({ ...formData, governorate_id: value })}
@@ -284,7 +312,7 @@ const CaptainDashboard = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>نبذة عنك</Label>
+                    <Label>نبذة عنك <span className="text-destructive">*</span></Label>
                     <Textarea
                       value={formData.bio}
                       onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
@@ -293,7 +321,7 @@ const CaptainDashboard = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>تاريخ انتهاء رخصة القيادة</Label>
+                    <Label>تاريخ انتهاء رخصة القيادة <span className="text-destructive">*</span></Label>
                     <Input
                       type="date"
                       value={formData.driving_license_expiry}
@@ -307,7 +335,7 @@ const CaptainDashboard = () => {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>تاريخ انتهاء رخصة السيارة (الترخيص)</Label>
+                    <Label>تاريخ انتهاء رخصة السيارة (الترخيص) <span className="text-destructive">*</span></Label>
                     <Input
                       type="date"
                       value={formData.car_license_expiry}
@@ -332,7 +360,7 @@ const CaptainDashboard = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>نوع السيارة</Label>
+                    <Label>نوع السيارة <span className="text-destructive">*</span></Label>
                     <Input
                       value={formData.car_type}
                       onChange={(e) => setFormData({ ...formData, car_type: e.target.value })}
@@ -340,7 +368,7 @@ const CaptainDashboard = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>نوع ناقل الحركة</Label>
+                    <Label>نوع ناقل الحركة <span className="text-destructive">*</span></Label>
                     <Select
                       value={formData.transmission_type}
                       onValueChange={(value) => setFormData({ ...formData, transmission_type: value })}
@@ -355,7 +383,7 @@ const CaptainDashboard = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>سعر الساعة (جنيه)</Label>
+                    <Label>سعر الساعة (جنيه) <span className="text-destructive">*</span></Label>
                     <Input
                       type="number"
                       value={formData.hourly_rate}
