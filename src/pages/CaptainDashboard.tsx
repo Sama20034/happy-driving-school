@@ -294,7 +294,7 @@ const CaptainDashboard = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>المحافظة</Label>
+                    <Label>المحافظة <span className="text-destructive">*</span></Label>
                     <Select
                       value={formData.governorate_id}
                       onValueChange={(value) => setFormData({ ...formData, governorate_id: value })}
