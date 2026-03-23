@@ -335,7 +335,7 @@ const CaptainDashboard = () => {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>تاريخ انتهاء رخصة السيارة (الترخيص)</Label>
+                    <Label>تاريخ انتهاء رخصة السيارة (الترخيص) <span className="text-destructive">*</span></Label>
                     <Input
                       type="date"
                       value={formData.car_license_expiry}
