@@ -60,6 +60,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   active: { label: "نشط", className: "bg-green-500/20 text-green-600 border-green-500/30" },
   suspended: { label: "معلّق", className: "bg-yellow-500/20 text-yellow-600 border-yellow-500/30" },
   banned: { label: "محظور", className: "bg-red-500/20 text-red-600 border-red-500/30" },
+  incomplete: { label: "لم يكمل الملف", className: "bg-gray-500/20 text-gray-600 border-gray-500/30" },
 };
 
 const Captains = () => {
