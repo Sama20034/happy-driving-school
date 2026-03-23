@@ -360,7 +360,7 @@ const CaptainDashboard = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>نوع السيارة</Label>
+                    <Label>نوع السيارة <span className="text-destructive">*</span></Label>
                     <Input
                       value={formData.car_type}
                       onChange={(e) => setFormData({ ...formData, car_type: e.target.value })}
