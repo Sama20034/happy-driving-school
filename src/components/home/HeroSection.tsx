@@ -9,10 +9,10 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="w-full">
+    <section className="w-full relative">
       <HeroSlider />
       {user && (
-        <div className="flex justify-center py-6 md:hidden">
+        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-10 flex justify-center md:hidden">
           <Button
             size="lg"
             onClick={() => navigate("/booking")}
