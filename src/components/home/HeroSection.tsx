@@ -8,21 +8,27 @@ const HeroSection = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const handleBookingClick = () => {
+    if (user) {
+      navigate("/captains");
+    } else {
+      navigate("/auth");
+    }
+  };
+
   return (
-    <section className="w-full relative">
+    <section className="w-full">
       <HeroSlider />
-      {user && (
-        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-10 flex justify-center md:hidden">
-          <Button
-            size="lg"
-            onClick={() => navigate("/captains")}
-            className="text-lg px-10 py-6 rounded-xl shadow-lg gap-3 animate-pulse hover:animate-none"
-          >
-            <CalendarCheck className="!size-6" />
-            احجز الآن
-          </Button>
-        </div>
-      )}
+      <div className="flex justify-center py-4 md:hidden">
+        <Button
+          size="lg"
+          onClick={handleBookingClick}
+          className="text-lg px-10 py-6 rounded-xl shadow-lg gap-3 animate-pulse hover:animate-none"
+        >
+          <CalendarCheck className="!size-6" />
+          احجز الآن
+        </Button>
+      </div>
     </section>
   );
 };
