@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, GraduationCap, Car } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
 const CTASection = () => {
   return (
     <section className="section bg-background relative overflow-hidden">
@@ -37,9 +36,20 @@ const CTASection = () => {
                   className="bg-white text-primary hover:bg-white/95 text-base px-8 py-6 rounded-xl font-semibold shadow-lg transition-all hover:scale-[1.02]"
                   asChild
                 >
-                  <Link to="/auth">
-                    سجّل الآن مجاناً
-                    <ArrowLeft className="mr-2 w-5 h-5" />
+                  <Link to="/auth?role=trainee">
+                    <GraduationCap className="ml-2 w-5 h-5" />
+                    سجل كمتدرب
+                  </Link>
+                </Button>
+                
+                <Button
+                  size="lg"
+                  className="bg-white/10 border-2 border-white/25 text-white hover:bg-white/20 hover:border-white/40 text-base px-8 py-6 rounded-xl font-semibold backdrop-blur-sm transition-all hover:scale-[1.02]"
+                  asChild
+                >
+                  <Link to="/auth?role=captain">
+                    <Car className="ml-2 w-5 h-5" />
+                    سجل ككابتن
                   </Link>
                 </Button>
                 

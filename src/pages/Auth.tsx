@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import carExamplePhoto from "@/assets/car-example-photo.jpg";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Eye, EyeOff, Mail, Lock, User, Car, GraduationCap, Upload, CreditCard, UserCircle, FileText, Camera, MapPin, Plus, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,11 +25,15 @@ type DocumentType = 'id_card' | 'personal_photo' | 'car_license' | 'driving_lice
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, signIn, signUp, loading } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
+  const roleParam = searchParams.get('role');
+  const [isLogin, setIsLogin] = useState(roleParam ? false : true);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>('trainee');
+  const [selectedRole, setSelectedRole] = useState<UserRole>(
+    roleParam === 'captain' ? 'captain' : 'trainee'
+  );
   
   const [isSigningUp, setIsSigningUp] = useState(false);
   
