@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import carExamplePhoto from "@/assets/car-example-photo.jpg";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Eye, EyeOff, Mail, Lock, User, Car, GraduationCap, Upload, CreditCard, UserCircle, FileText, Camera, MapPin, Plus, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
