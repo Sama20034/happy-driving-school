@@ -23,7 +23,7 @@ const HeroSlider = () => {
   }, [api]);
 
   return (
-    <div className="relative w-full h-[100svh] min-h-[520px] pt-16 overflow-hidden">
+    <div className="relative w-full h-[calc(100svh-120px)] md:h-[100svh] min-h-[400px] pt-16 overflow-hidden">
       <Carousel
         setApi={setApi}
         opts={{ loop: true, direction: "rtl" }}
