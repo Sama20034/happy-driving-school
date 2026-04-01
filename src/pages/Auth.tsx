@@ -25,11 +25,15 @@ type DocumentType = 'id_card' | 'personal_photo' | 'car_license' | 'driving_lice
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, signIn, signUp, loading } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
+  const roleParam = searchParams.get('role');
+  const [isLogin, setIsLogin] = useState(roleParam ? false : true);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>('trainee');
+  const [selectedRole, setSelectedRole] = useState<UserRole>(
+    roleParam === 'captain' ? 'captain' : 'trainee'
+  );
   
   const [isSigningUp, setIsSigningUp] = useState(false);
   
