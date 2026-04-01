@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, GraduationCap, Car } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
 const CTASection = () => {
   return (
     <section className="section bg-background relative overflow-hidden">
