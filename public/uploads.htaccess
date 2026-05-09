@@ -1,0 +1,37 @@
+# ⚠️ ضعي هذا الملف داخل مجلد /uploads على استضافة Hostinger باسم: .htaccess
+# الغرض: منع تنفيذ أي سكربتات (PHP, Perl, Python, Shell, ...) داخل مجلد الرفع
+# والسماح فقط بعرض الصور والملفات الآمنة.
+
+# 1) منع تنفيذ أي سكربتات
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|php8|pl|py|jsp|asp|aspx|sh|cgi|htaccess|htpasswd|ini|log|sql|exe|bat)$">
+    Require all denied
+</FilesMatch>
+
+# 2) تعطيل محرك PHP بالكامل في هذا المجلد (احتياط إضافي)
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+# 3) منع معالجة أي امتداد كـ PHP
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8
+AddType text/plain .php .phtml .php3 .php4 .php5 .php7 .php8 .pl .py .jsp .asp .sh .cgi
+
+# 4) منع تصفح محتويات المجلد
+Options -Indexes -ExecCGI
+
+# 5) السماح فقط بأنواع الملفات الآمنة (صور ومستندات)
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|pdf|ico|bmp)$">
+    Require all granted
+</FilesMatch>
+
+# 6) منع رفع/تنفيذ ملفات مخفية
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
