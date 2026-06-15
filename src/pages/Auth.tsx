@@ -237,7 +237,7 @@ const Auth = () => {
 
             await supabase
               .from('profiles')
-              .update(updateData)
+              .update(updateData as never)
               .eq('user_id', data.user.id);
           }
 
