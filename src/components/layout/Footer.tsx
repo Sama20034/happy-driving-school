@@ -45,14 +45,23 @@ const Footer = () => {
             <h4 className="font-semibold mb-4 text-lg">تواصل معنا</h4>
             <a 
               href="tel:01515160511" 
-              className="flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors text-sm mb-3"
+              className="flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors text-sm mb-1"
             >
               <Phone size={16} />
               <span dir="ltr">0151 516 0511</span>
             </a>
+            <p className="text-primary-foreground/60 text-xs mb-3 mr-6">وجه قبلى</p>
+            <a 
+              href="tel:01515170511" 
+              className="flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors text-sm mb-1"
+            >
+              <Phone size={16} />
+              <span dir="ltr">0151 517 0511</span>
+            </a>
+            <p className="text-primary-foreground/60 text-xs mb-3 mr-6">وجه بحري</p>
             <div className="flex items-center gap-2 text-primary-foreground/80 text-sm mb-5">
               <MapPin size={16} />
-              <span>مصر - القاهرة والجيزة</span>
+              <span>جميع محافظات مصر</span>
             </div>
             
             {/* Social Links */}
